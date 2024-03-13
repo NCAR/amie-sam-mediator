@@ -1,0 +1,286 @@
+#!/usr/bin/env python
+import sys, getopt, logging, json, re, os
+from pathlib import Path
+from config import ConfigLoader
+from sam_sp.peopleclient import PeopleClient
+
+PROG = "people"
+USAGE1 = PROG + " [-c|--configfile=<file>] -e|--external-orgs [search_parms]"
+USAGE2 = PROG + " [-c|--configfile=<file>] -p|--persons [ search_parms]"
+USAGE3 = PROG + " [-c|--configfile=<file>] -o|--org-id=org_id " \
+    "                                [-n|--nsf=nsfOrgCode]"
+USAGE4 = PROG + " [-c|--configfile=<file>] -n|--nsf=nsfOrgCode"
+USAGE5 = PROG + " -h|--help"
+USAGE = f'''Usage: {USAGE1}
+         or
+       {USAGE2}
+         or
+       {USAGE3}
+         or
+       {USAGE4}
+         or
+       {USAGE5}'''
+
+def help():
+    help_text = f'''
+{PROG}: Query PeopleSearch for all Persons or all External Organizations
+{USAGE}
+    
+  -c|--configfile    : Configuration ("ini") file. If not specified,
+                     "./config.ini" is assumed. See Configuration below.
+    
+  -p|--persons       : Display all persons (or write person data to the
+                     match file).
+
+  -e|--external-orgs : Display all external organizations (or write
+                     organization data to the match file).
+
+  -o|--org-id        : Display the external organization with the given org_id
+
+  -i|--internal-orgs : Display all internal organizations.
+
+  -a|--acronym       : Display the internal organization with the given acronym
+
+  -n|--nsf           : Display the organization with the given NSF OrgCode;
+                     if given with -o|--org_id, the NSF OrgCode for org with
+                     the given org_id is set to the given value
+
+  -h|--help          : Display help test and quit
+
+    
+Configuration
+-------------
+The configuration should include at least a "[localsite]" section.
+
+The "[localsite]" section must contain "people_url", "people_user", and
+"people_password" keys.
+
+Environment variables with names beginning with "LOCALSITE_" are treated as
+"secret" configuration variables that can be interpolated: the name of the
+configuration variable is the environment variable name converted to local
+case. For example, the environment variable "LOCALSITE_PEOPLE_PASSWORD"
+would become the configuration key "localsite_people_password". This allows
+secrets to be specified in the environment and accessed via interpolation
+without storing them in the configuration file itself.
+
+If the environment variable "SECRETS_DIR" is defined and it names a
+directory, that directory is searched for files with names beginning with
+"localsite_". Those files are also treated as secret configuration values.
+The "LOCALSITE_" environment variables have precedence over SECRETS_DIR files.
+    '''
+    print(help_text)
+
+VALID_SEARCH_KEYS = {
+    'external-org': [ 'org_id', 'name', 'city', 'address' ],
+    'person': [ 'upid', 'firstName', 'lastName', 'preferredName', 'middleName'],
+}
+RE_KVSPLIT = re.compile('^([^=]*)=(.*)$')
+
+def main(argv):
+    run_info = process_command_line_and_configuration(argv)
+
+    combined_config = run_info['config']
+    internal_orgs = run_info['internal_orgs']
+    external_orgs = run_info['external_orgs']
+    persons = run_info['persons']
+    parms = run_info['parms']
+    org_id = run_info['org_id']
+    nsf = run_info['nsf']
+
+    localsite_config = combined_config['localsite']
+
+    people_client = PeopleClient(localsite_config['people_url'],
+                                 localsite_config['people_user'],
+                                 localsite_config['people_password'])
+
+    try:
+        if external_orgs:
+            if parms:
+                results = people_client.fuzzymatch_org(**parms)
+                for result in results:
+                    print(json.dumps(result))
+            else:
+                print(json.dumps(people_client.get_external_orgs(), indent=4))
+                
+            sys.exit(0)
+
+        if internal_orgs:
+            print(json.dumps(people_client.get_internal_orgs(), indent=4))
+                
+            sys.exit(0)
+                
+
+        if persons:
+            if parms:
+                results = people_client.fuzzymatch_person(**parms)
+            else:
+                results = people_client.get_persons()
+
+            if results is not None:
+                for result in results:
+                    print(json.dumps(result))
+                
+            sys.exit(0)
+
+        if org_id:
+            if nsf:
+                result = \
+                    people_client.set_nsf_code_for_external_org(org_id, nsf)
+            else:
+                result = people_client.get_external_org_by_id(org_id)
+            if result is not None:
+                print(json.dumps(result, indent=4))
+            
+            sys.exit(0)
+
+        if acronym:
+            result = people_client.get_internal_org(acronym)
+            if result is not None:
+                print(json.dumps(result, indent=4))
+            
+            sys.exit(0)
+
+        if nsf:
+            result = people_client.get_external_org_by_nsf_code(nsf)
+            if result is not None:
+                print(json.dumps(result, indent=4))
+            
+            sys.exit(0)
+                      
+    except Exception as e:
+        raise e
+#        prog_err(e)
+#        sys.exit(1)
+        
+    sys.exit(0)
+
+def process_command_line_and_configuration(argv):
+    run_info = process_command_line(argv)
+    configfile = run_info['configfile']
+    internal_orgs = run_info['internal_orgs']
+    external_orgs = run_info['external_orgs']
+    persons = run_info['persons']
+    parms = run_info['parms']
+    acronym = run_info['acronym']
+    org_id = run_info['org_id']
+    nsf = run_info['nsf']
+    matchdir = run_info['matchdir']
+
+    config = ConfigLoader.loadConfig(configfile)
+
+    run_info['config'] = config
+
+    return run_info
+
+def process_command_line(argv):
+    argv.pop(0)
+    configfile = os.environ.get('CONFIG_INI','config.ini')
+    internal_orgs = False
+    external_orgs = False
+    persons = False
+    matchdir = None
+    acronym = None
+    org_id = None
+    nsf = None
+    try:
+        opts,args = getopt.getopt(argv,"heipo:a:n:m:c:",["help","external_orgs","internal_orgs","persons","org-id=","acronym=","nsf=","matchdir=","configfile="])
+    except getopt.GetoptError as e:
+        prog_err(e)
+        print_err(USAGE)
+        sys.exit(2)
+
+    mutexOpts = set()
+    for opt, arg in opts:
+        if opt in ("-h","--help"):
+            help()
+            sys.exit(0)
+        elif opt in ("-c","--configfile"):
+            configfile = arg
+        elif opt in ("-m","--matchdir"):
+            matchdir = arg
+        elif opt in ("-e","--external-orgs"):
+            external_orgs = True
+            mutexOpts.add("-e")
+            argtype = "external-org"
+        elif opt in ("-i","--internal-orgs"):
+            internal_orgs = True
+            mutexOpts.add("-i")
+            argtype = "internal-org"
+        elif opt in ("-p","--persons"):
+            persons = True
+            mutexOpts.add("-p")
+            argtype = "person"
+        elif opt in ("-o","--org-id"):
+            org_id = arg
+            if '-n' not in mutexOpts:
+                mutexOpts.add("-o")
+        elif opt in ("-a","--acronym"):
+            acronym = arg
+        elif opt in ("-n","--nsf"):
+            nsf = arg
+            if '-o' not in mutexOpts:
+                mutexOpts.add("-n")
+
+    if len(mutexOpts) > 1:
+        prog_err("options are mutually exclusive (" + ", ".join(mutexOpts) + ")")
+        print_err(USAGE)
+        sys.exit(2)
+
+    if len(mutexOpts) == 0:
+        prog_err("One of -e, -i, -p, -o, -a, or -n are required")
+        print_err(USAGE)
+        sys.exit(2)
+        
+    if not Path(configfile).is_file():
+        prog_err(configfile + ": no such file")
+        sys.exit(2)
+
+    if matchdir and not Path(matchdir).is_dir():
+        prog_err(matchdir + ": no such directory")
+        sys.exit(2)
+
+    if args:
+        validated_args = collect_search_args(argtype,args)
+    else:
+        validated_args = None
+
+                  
+    return {
+        'configfile': configfile,
+        'matchdir': matchdir,
+        'internal_orgs': internal_orgs,
+        'external_orgs': external_orgs,
+        'persons': persons,
+        'parms': validated_args,
+        'acronym': acronym,
+        'org_id': org_id,
+        'nsf': nsf,
+    }
+
+def collect_search_args(argtype, args):
+    valid = VALID_SEARCH_KEYS[argtype]
+    validated = dict()
+    for arg in args:
+        m = RE_KVSPLIT.match(arg)
+        if not m:
+            prog_err("argument not of the form name=value: "+arg)
+            print_err(USAGE)
+            sys.exit(2)
+        k = m.group(1)
+        v = m.group(2)
+        if k not in valid:
+            prog_err("argument not valid for --"+argtype+": "+k)
+            print_err(USAGE)
+            sys.exit(2)
+        validated[k] = v
+    return validated
+
+def print_err(*args, **kwargs):
+    print(*args, file=sys.stderr, **kwargs)
+
+def prog_err(*args, **kwargs):
+    sys.stderr.write(PROG + ": ")
+    print_err(*args, **kwargs)
+
+if __name__ == '__main__':
+    main(sys.argv)

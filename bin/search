@@ -1,0 +1,146 @@
+#!/usr/bin/env python
+import sys, getopt, logging, json, re
+from pathlib import Path
+from config import ConfigLoader
+from sam_sp.peopleclient import PeopleClient
+
+PROG = "search"
+USAGE1 = PROG + " -m|--matchdir=<dir>  -e|--external-orgs search_parms..."
+USAGE2 = PROG + " -m|--matchdir=<dir>  -p|--persons search_parms..."
+USAGE3 = PROG + " -h|--help"
+USAGE = f'''Usage: {USAGE1}
+         or
+       {USAGE2}
+         or
+       {USAGE3}'''
+
+def help():
+    help_text = f'''
+{PROG}: Search "match file" for fuzzy-matching Persons or Organizations
+{USAGE}
+    
+  -m|--matchdir=dir  : Specify the name of a "match file" directory; a file
+                     named "person" or "external-org" is expected to exist
+                     in this directory (see "people" utility). A "match file"
+                     contains the person/organization represented in a way
+                     that makes subsequent "fuzzy matches" possible.
+    
+  -p|--persons       : Search for matching Persons
+
+  -e|--external-orgs : Search for matching External Organizations
+
+  -h|--help          : Display help test and quit
+
+    '''
+    print(help_text)
+
+VALID_SEARCH_KEYS = {
+    'external-org': [ 'org_id', 'name', 'city', 'address' ],
+    'person': [ 'upid', 'firstName', 'lastName', 'preferredName', 'middleName'],
+}
+RE_KVSPLIT = re.compile('^([^=]*)=(.*)$')
+
+def main(argv):
+    run_info = process_command_line(argv)
+
+    external_orgs = run_info['external_orgs']
+    persons = run_info['persons']
+    matchfile = run_info['matchfile']
+    parms = run_info['parms']
+
+    people_client = PeopleClient()
+    
+    if external_orgs:
+        people_client.load_org_matchfile(matchfile)
+        people_client.fuzzymatch_org(matchfile,**parms)
+
+    if persons:
+        pass
+        
+    sys.exit(0)
+
+def process_command_line(argv):
+    argv.pop(0)
+    external_orgs = False
+    persons = False
+    matchdir = None
+
+    try:
+        opts,args = getopt.getopt(argv,"hepm:",["help","external_orgs","persons","matchdir="])
+    except getopt.GetoptError as e:
+        prog_err(e)
+        print_err(USAGE)
+        sys.exit(2)
+
+    for opt, arg in opts:
+        if opt in ("-h","--help"):
+            help()
+            sys.exit(0)
+        elif opt in ("-m","--matchdir"):
+            matchdir = arg
+        elif opt in ("-e","--external-orgs"):
+            external_orgs = True
+            argtype = "external-org"
+        elif opt in ("-p","--persons"):
+            persons = True
+            argtype = "person"
+
+    if external_orgs and persons:
+        prog_err("-e and -p are mutually exclusive")
+        print_err(USAGE)
+        sys.exit(2)
+
+    if not external_orgs and not persons:
+        prog_err("One of -e and -p are required")
+        print_err(USAGE)
+        sys.exit(2)
+
+    if not matchdir:
+        prog_err("-m|--matchdir argument is required")
+        print_err(USAGE)
+        sys.exit(2)
+
+    validated_args = collect_search_args(argtype,args)
+
+    fn = '/external-org' if external_orgs else '/person'
+    matchfile = matchdir + fn
+
+    if not Path(matchfile).is_file():
+        prog_err(matchfile + ": no such file")
+        sys.exit(2)
+                  
+    return {
+        'matchfile': matchfile,
+        'external_orgs': external_orgs,
+        'persons': persons,
+        'parms': validated_args,
+    }
+
+def collect_search_args(argtype, args):
+    valid = VALID_SEARCH_KEYS[argtype]
+    validated = dict()
+    for arg in args:
+        m = RE_KVSPLIT.match(arg)
+        if not m:
+            prog_err("argument not of the form name=value: "+arg)
+            print_err(USAGE)
+            sys.exit(2)
+        k = m.group(1)
+        v = m.group(2)
+        if k not in valid:
+            prog_err("argument not valid for --"+argtype+": "+k)
+            print_err(USAGE)
+            sys.exit(2)
+        validated[k] = v
+    return validated
+            
+
+def print_err(*args, **kwargs):
+    print(*args, file=sys.stderr, **kwargs)
+
+def prog_err(*args, **kwargs):
+    sys.stderr.write(PROG + ": ")
+    print_err(*args, **kwargs)
+
+if __name__ == '__main__':
+    main(sys.argv)

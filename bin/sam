@@ -1,0 +1,265 @@
+#!/usr/bin/env python
+import sys, getopt, logging, json
+from pathlib import Path
+from config import ConfigLoader
+from sam_sp.peopleclient import PeopleClient
+from sam_sp.samclient import SAMClient
+
+PROG = "sam"
+USAGE1 = PROG + " [-c|--configfile=<file>]"
+USAGE2 = PROG + " [-c|--configfile=<file>] -g|--get=path"
+USAGE3 = PROG + " [-c|--configfile=<file>] -p|--put=path"
+USAGE4 = PROG + " [-c|--configfile=<file>] -P|--post=path"
+USAGE5 = PROG + " [-c|--configfile=<file>] -o|--orgs"
+USAGE6 = PROG + " [-c|--configfile=<file>] --org=acronym"
+USAGE7 = PROG + " [-c|--configfile=<file>] -m|--mnemonics"
+USAGE8 = PROG + " [-c|--configfile=<file>] --mi=inst_id"
+USAGE9 = PROG + " [-c|--configfile=<file>] --mo=org_id"
+USAGE10 = PROG + " [-c|--configfile=<file>] --Mi=inst_id"
+USAGE11 = PROG + " [-c|--configfile=<file>] --Mo=org_id"
+USAGE12 = PROG + " -h|--help"
+USAGE = f'''Usage: {USAGE1}
+         or
+       {USAGE2}
+       {USAGE3}
+       {USAGE4}
+       {USAGE5}
+       {USAGE6}
+       {USAGE7}
+       {USAGE8}
+       {USAGE9}
+       {USAGE10}
+       {USAGE11}
+       {USAGE12}'''
+
+def help():
+    help_text = f'''
+{PROG}: Submit an HTTP request to the SAM API
+{USAGE}
+    
+  -c|--configfile   : Configuration ("ini") file. If not specified,
+                      "./config.ini" is assumed. See Configuration below.
+
+  -o|--orgs         : Show all organizations (internal)
+
+  --org=acronym     : Show named organization (internal)
+
+  -m|--mnemonics    : Show all mnemonic codes
+    
+  --mi=inst_id      : Show existing mnemonic code for given institution
+    
+  --mo=org_id       : Show existing mnemonic code for given organization
+    
+  --Mi=inst_id      : Show suggestions for new mnemonic codes for institution
+
+  --Mo=org_id       : Show suggestions for new mnemonic codes for organization
+
+  -g|--get          : Submit a GET request
+
+  -p|--put          : Submit a PUT request
+
+  -P|--post         : Submit a POST request
+
+  -h|--help         : Display help test and quit
+
+    
+Configuration
+-------------
+The configuration should include at least a "[localsite]" section.
+
+The "[localsite]" section must have at least "sam_url", "sam_user",
+"sam_password", "people_url", "people_user", and "people_password" keys.
+
+Environment variables with names beginning with "LOCALSITE_" are treated as
+"secret" configuration variables that can be interpolated: the name of the
+configuration variable is the environment variable name converted to local
+case. For example, the environment variable "LOCALSITE_SAM_USER" would
+become the configuration key "sam_user". This allows secrets to be
+specified in the environment and accessed via interpolation without storing
+them in the configuration file itself.
+
+If the environment variable "SECRETS_DIR" is defined and it names a
+directory, that directory is searched for files with names beginning with
+"localsite_". Those files are also treated as secret configuration values.
+The "LOCALSITE_" environment variables have precedence over SECRETS_DIR
+files.
+    '''
+    print(help_text)
+
+def main(argv):
+    run_info = process_command_line_and_configuration(argv)
+
+    combined_config = run_info['config']
+    orgs = run_info['orgs']
+    org = run_info['org']
+    mnemonics = run_info['mnemonics']
+    inst_mnem = run_info['inst_mnem']
+    org_mnem = run_info['org_mnem']
+    inst_mnems = run_info['inst_mnems']
+    org_mnems = run_info['org_mnems']
+    get = run_info['get']
+    put = run_info['put']
+    post = run_info['post']
+
+    localsite_config = combined_config['localsite']
+
+    people_client = PeopleClient(localsite_config['people_url'],
+                           localsite_config['people_user'],
+                           localsite_config['people_password'])
+    mnemonic_code_maker = MnemonicCodeMaker(
+        int(localsite_config['sam_mnem_code_suggestions_min']),
+        int(localsite_config['sam_mnem_code_suggestions_max'])
+    )
+    sam_client = SAMClient(localsite_config['sam_url'],
+                           localsite_config['sam_user'],
+                           localsite_config['sam_password'],
+                           people_client,
+                           mnemonic_code_maker
+                           )
+
+    if put or post:
+        data = json.load(sys.stdin)
+
+    if orgs:
+        results = sam_client.get_internal_orgs()
+    elif org:
+        results = sam_client.get_internal_org_by_acronym(org)
+    elif mnemonics:
+        results = sam_client.get_mnemonic_codes()
+    elif inst_mnem:
+        results = sam_client.get_mnemonic_code_for_inst(inst_mnem)
+    elif org_mnem:
+        results = sam_client.get_mnemonic_code_for_org(org_mnem)
+    elif inst_mnems:
+        results = sam_client.suggest_mnemonic_codes_for_inst(inst_mnems)
+    elif org_mnems:
+        results = sam_client.suggest_mnemonic_codes_for_org(org_mnems)
+    elif get:
+        results = sam_client.get(get)
+    elif put:
+        results = sam_client.put(put,data)
+    elif post:
+        results = sam_client.post(post,data)
+
+    print(json.dumps(results, indent=4))
+
+    sys.exit(0);
+
+def process_command_line_and_configuration(argv):
+    run_info = process_command_line(argv)
+
+    configfile = run_info['configfile']
+    orgs = run_info['orgs']
+    org = run_info['org']
+    mnemonics = run_info['mnemonics']
+    inst_mnem = run_info['inst_mnem']
+    org_mnem = run_info['org_mnem']
+    inst_mnems = run_info['inst_mnems']
+    org_mnems = run_info['org_mnems']
+    get = run_info['get']
+    put = run_info['put']
+    post = run_info['post']
+
+    config = ConfigLoader.loadConfig(configfile)
+
+    run_info['config'] = config
+
+    return run_info
+
+def process_command_line(argv):
+    argv.pop(0)
+    configfile = 'config.ini'
+    orgs = False
+    org = None
+    mnemonics = False
+    inst_mnem = None
+    org_mnem = None
+    inst_mnems = None
+    org_mnems = None
+    get = None
+    put = None
+    post = None
+
+    try:
+        opts,args = getopt.getopt(argv,"homg:p:P:c:",["help","orgs","org=","mnemonics","get","put","post","configfile=","mi=","mo=","Mi=","Mo="])
+    except getopt.GetoptError as e:
+        prog_err(e)
+        print_err(USAGE)
+        sys.exit(2)
+
+    mutexOpts = set()
+    for opt, arg in opts:
+        if opt in ("-h","--help"):
+            help()
+            sys.exit(0)
+        elif opt in ("-c","--configfile"):
+            configfile = arg
+        elif opt in ("-o","--orgs"):
+            orgs = True
+            mutexOpts.add('-o')
+        elif opt in ("--org"):
+            org = arg
+            mutexOpts.add('--org')
+        elif opt in ("-m","--mnemonics"):
+            mnemonics = True
+            mutexOpts.add('-m')
+        elif opt in ("--mi"):
+            inst_mnem = arg
+            mutexOpts.add('--mi')
+        elif opt in ("--mo"):
+            org_mnem = arg
+            mutexOpts.add('--mo')
+        elif opt in ("--Mi"):
+            inst_mnems = arg
+            mutexOpts.add('--Mi')
+        elif opt in ("--Mo"):
+            org_mnems = arg
+            mutexOpts.add('--Mo')
+        elif opt in ("-g","--get"):
+            get = arg
+            mutexOpts.add('-g')
+        elif opt in ("-p","-put"):
+            put = arg
+            mutexOpts.add('-p')
+        elif opt in ("-P","-post"):
+            post = arg
+            mutexOpts.add('-P')
+
+    if len(mutexOpts) > 1:
+        prog_err("options " + ",".join(mutexOpts) + " are mutually exclusive")
+        print_err(USAGE)
+        sys.exit(2)
+        
+    if len(mutexOpts) == 0:
+        prog_err("one of " + ",".join(mutexOpts) + " is required")
+        print_err(USAGE)
+        sys.exit(2)
+
+    if not Path(configfile).is_file():
+        prog_err(configfile + ": no such file")
+        sys.exit(2)
+
+    return {
+        'configfile': configfile,
+        'orgs': orgs,
+        'org': org,
+        'mnemonics': mnemonics,
+        'inst_mnem': inst_mnem,
+        'org_mnem': org_mnem,
+        'inst_mnems': inst_mnems,
+        'org_mnems': org_mnems,
+        'get': get,
+        'put': put,
+        'post': post
+    }
+
+
+def print_err(*args, **kwargs):
+    print(*args, file=sys.stderr, **kwargs)
+
+def prog_err(*args, **kwargs):
+    sys.stderr.write(PROG + ": ")
+    print_err(*args, **kwargs)
+
+if __name__ == '__main__':
+    main(sys.argv)

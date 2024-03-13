@@ -1,0 +1,13 @@
+**/.DS_Store
+**/.#.*
+**/*~
+**/*.swp
+**/.bash_history
+.git
+.gitignore
+gendoc/**
+README
+README.md
+dev
+prod
+test

@@ -1,0 +1,12 @@
+**/.DS_Store
+**/.#*
+**/#*#
+**/*~
+**/*.swp
+**/.bash_history
+**/.idea
+gendoc/**
+dev/.env
+dev/venv/**
+dev/venv-secrets/**
+dev/logs/**

@@ -1,0 +1,98 @@
+#!/bin/sh
+PROG=runtests
+DESC="Run tests"
+USAGE1="$PROG [tests...]"
+USAGE2="$PROG -h|--help"
+HELP_TEXT="
+        This script will run all tests named on the command line, or all tests
+        found under directories named on the command line. If no arguments
+        are given, the \"tests\" directory under the script's directory will be
+        used.
+
+        All tests must be executable scripts with names starting with \"t_\".
+        The return value of all scripts is expected to be the number of failed
+        tests.
+
+        If the first argument is -h or --help, the script will display help
+        text and quit.
+
+ENVIRONMENT
+        PACKAGE_DIR
+            The amiemediator top-level directory. Default is the directory
+            containing the $PROG script.
+        PYTHONPATH
+            Where python will search for packages; if empty, the variable will
+            be set to \"<pd>/src:<pd>/tests\", where <pd> is \${PACKAGE_DIR};
+            otherwise, \":<pd>/src:<pd>/tests\" will be appended to the
+            original value.
+"
+SCRIPTDIR=`cd \`dirname $0\`; pwd`
+USAGE="Usage:
+  $USAGE1
+  $USAGE2
+"
+case $1 in
+    '')
+        set ${SCRIPTDIR}/tests ;;
+    -h|--help)
+        cat <<EOF
+NAME
+        ${PROG} - ${DESC}
+
+SYNOPSIS
+        ${USAGE1}
+        ${USAGE2}
+
+DESCRIPTION${HELP_TEXT}
+EOF
+        exit 0 ;;
+    -*)
+        echo "${PROG}: illegal option: $1" >&2
+        exit 1 ;;
+esac
+
+PACKAGE_DIR="${PACKAGE_DIR:-${SCRIPTDIR}}"
+if [ ":${PYTHONPATH}" ] ; then
+   PYTHONPATH="${PYTHONPATH}:${PACKAGE_DIR}/src:${PACKAGE_DIR}/tests"
+else
+   PYTHONPATH="${PACKAGE_DIR}/src:${PACKAGE_DIR}/tests"
+fi
+export PYTHONPATH
+tstamp=`date +%s`
+STATFILE=/tmp/runtests.$$.${tstamp}
+echo 0 0 >${STATFILE}
+trap "read nfiles trc <${STATFILE} ; rm -f ${STATFILE} ; exit ${trc}" 0 1 2 3 15
+
+for arg in "$@" ; do
+    if [ -d "${arg}" ] ; then
+        find "${arg}" -type f -name 't_*' ! -name '*~' -print
+    else
+        echo "${arg}"
+    fi
+done | while read path ; do
+    if [ ! -e ${path} ] ; then
+        echo "${path}: no such file" >&2
+        rc=1
+    elif [ ! -f ${path} ] ; then
+        echo "${path}: not a regular file" >&2
+        rc=1
+    elif [ ! -x ${path} ] ; then
+        echo "${path}: file not executable" >&2
+        rc=1
+    else
+        echo ${path}:
+        ${path}
+        rc=$?
+    fi
+    read nfiles trc <${STATFILE}
+    nfiles=`expr ${nfiles} + 1`
+    if [ ${rc} != 0 ] ; then
+        trc=`expr ${trc} + ${rc}`
+    fi
+    echo "${nfiles} ${trc}" >${STATFILE}
+done
+read nfiles trc <${STATFILE}
+echo "${nfiles} files, ${trc} failures"
+trap '' 0
+rm -f ${STATFILE}
+exit ${rc}

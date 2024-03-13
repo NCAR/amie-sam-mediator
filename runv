@@ -1,0 +1,4 @@
+#!/bin/sh
+SCRIPTDIR=`cd \`dirname $0\`; /bin/pwd`
+
+exec ${SCRIPTDIR}/../amiemediator/runv -S -P${SCRIPTDIR}/dev "$@"

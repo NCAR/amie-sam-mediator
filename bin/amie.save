@@ -1,0 +1,144 @@
+#!/bin/sh
+PROG=amie
+DESC="Process AMIE packets and submit work to SAM"
+USAGE1="${PROG} [-o|--once]"
+USAGE2="${PROG} -h|--help"
+AMIE_SITE_DFLT=NCAR
+HELP_TEXT="
+        This utility mediates interactions between the AMIE server and
+        the SAM utility. It is actually just a front-end to the \"amie\"
+        python script form the \"amiemediator\" package.
+
+        The following option flags are supported:
+        
+            -o|--once
+                Normally, {PROG} loops indefinitely, retrieving packets from
+                the AMIE server, retrieving updates from SAM, and processing
+                the packets using data from SAM. The --once flag will run
+                through the process once without repeating and without waiting.
+
+            -h|--help
+                Display help test and quit
+
+ENVIRONMENT
+        AMIE_SITE
+            The site name of the local site. Default is ${AMIE_SITE_DFLT}.
+
+SEE ALSO
+        amie in the amiemediator package
+"
+USAGE="Usage:
+  $USAGE1
+  $USAGE2
+"    
+AMIE_SITE="${AMIE_SITE:=${AMIE_SITE_DFLT}}"
+
+SCRIPTDIR=`cd \`dirname $0\`; /bin/pwd`
+base_candidates="
+  ${PACKAGE_DIR}
+  .
+  ..
+  ${SCRIPTDIR}/..
+  ${SCRIPTDIR}/..
+  ${SCRIPTDIR}/../..
+"
+
+BASE_DIR=
+for base_candidate in ${base_candidates} ; do
+    if [ -d "${base_candidate}" ] && [ -f "${base_candidate}/Dockerfile" ]
+    then
+        BASE_DIR=`cd "${base_candidate}" ; /bin/pwd`
+        break
+    fi
+done
+if [ ":${BASE_DIR}" = ":" ] ; then
+    echo "${PROG}: cannot determine package base directory" >&2
+    exit 1
+fi 
+
+if [ ":${RUN_ENV}" != ":" ] && [ -d "${BASE_DIR}/${RUN_ENV}" ] ; then
+    conf_candidates="${BASE_DIR}/${RUN_ENV}/config.ini"
+else
+    conf_candidates=""
+fi
+
+conf_candidates="${conf_candidates}
+  ./config.init
+  ./config.ini
+  ${SCRIPTDIR}/config.init
+  ${SCRIPTDIR}/config.ini
+"
+CONFIG_FILE=
+for conf_candidate in ${conf_candidates} ; do
+    if [ -f "${conf_candidate}" ] ; then
+        configdir=`cd \`dirname ${conf_candidate}\` ; /bin/pwd`
+        configbase=`basename ${conf_candidate}`
+        CONFIG_FILE="${configdir}/${configbase}"
+        break
+    fi
+done
+if [ ":${CONFIG_FILE}" = ":" ] ; then
+    echo "${PROG}: cannot determine configuration file" >&2
+    exit 1
+fi 
+
+pydir_candidates="
+  ${BASE_DIR}/../amiemoderator/bin
+  ${SCRIPTDIR}/../../bin
+  ${SCRIPTDIR}/../../amiemoderator/bin
+"
+
+PYPROG=
+for pydir_candidate in ${pydir_candidates} ; do
+    if [ -d "${pydir_candidate}" ] && [ -f "${pydir_candidate}/amie" ] && \
+       [ -x "${pydir_candidate}/amie" ] ; then
+        pydir=`cd ${pydir_candidate} ; /bin/pwd`
+        if [ "${pydir}" = "${SCRIPTDIR}" ] ; then
+            continue
+        fi
+        PYPROG="${pydir}/amie"
+        break
+    fi
+done
+if [ ":${PYPROG}" = ":" ] ; then
+    echo "${PROG}: cannot find amiemediator/bin/amie file" >&2
+    exit 1
+fi
+
+ONCE=
+VERBOSE=n
+while [ $# != 0 ] ; do
+    arg="$1"
+    shift
+    case $arg in
+        -o|--once)
+            ONCE=' --once' ;;
+        -v|--verbose)
+            VERBOSE=y ;;
+        -h|--help)
+            cat <<EOF
+NAME
+        $PROG - $DESC
+
+SYNOPSIS
+        $USAGE1
+        $USAGE2
+
+DESCRIPTION$HELP_TEXT
+EOF
+            exit 1 ;;
+            
+        *)
+            echo "$PROG: invalid argument: $arg" >&2
+            echo "$USAGE" >&2
+            exit 1 ;;
+
+    esac
+done
+
+CMD="${PYPROG} --site=${AMIE_SITE} --configfile=${CONFIG_FILE}${ONCE} ${PYPROG}"
+if [ ${VERBOSE} = y ] ; then
+   echo "${CMD}"
+fi
+exec ${CMD}
+exit 255

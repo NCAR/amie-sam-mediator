@@ -1,0 +1,80 @@
+#!/bin/sh
+PROG=run-all-tests
+DESC="Run unit and integration test suite with minimal dependencies"
+USAGE1="$PROG [-n|--no-unit-tests] [-d|--debug]"
+USAGE2="$PROG [-h|--help]"
+HELP_TEXT="
+        Run all unit tests for amie-sam-mediator.
+
+        The script does *not* use docker-compose.
+
+        The script can be run from CircleCI, which uses a \"remote docker\"
+        service which precludes the use of conventional docker volumes and
+        bind mounts; volume data is therefore copied into a container using
+        \"docker cp\" and shared using the \"--volumes-from\" option of
+        \"docker run\".
+
+        The following options are suported:
+
+          -h|--help
+            Print help and quit.
+"
+
+while [ ":$1" != ":" ] ; do
+    case $1 in
+        -h|--help)
+            cat <<EOF
+NAME
+        $PROG - $DESC
+
+SYNOPSIS
+        $USAGE1
+        $USAGE2
+
+DESCRIPTION$HELP_TEXT
+EOF
+            exit 0 ;;
+    esac
+    shift
+done
+
+which docker >/dev/null 2>&1
+rc=$?
+if [ $rc != 0 ] ; then
+    echo "$PROG: cannot find \"docker\" command" >&2
+    exit 1
+fi
+        
+TEMPDIR=/tmp/amie-sam-mediator
+TESTLOG=${TEMPDIR}/run-all-tests.log
+CONT=amie-sam-mediator-test
+
+#
+# Set up a dummy auth parameters file for connecting to SAM via HTTP. (We will
+# not actually connect to anything
+#
+dummySecrets=$TEMPDIR/secrets
+mkdir -p ${dummySecrets}
+authFile=${dummySecrets}/sam_auth.parm
+amieKey=${dummySecrets}/AMIE_API_KEY
+
+echo SAM_AUTH_amie=amie:testpass >${authFile}
+echo testkey >${amieKey}
+
+trap "docker kill ${CONT} ; docker rm ${CONT} ; cat ${TESTLOG} >&2 ; rm -rf ${TEMPDIR} ; exit 1" 0 1 2 13 15
+
+docker run --name ${CONT} \
+       -v"${dummySecrets}:/run/secrets:z" \
+       ghcr.io/ncar/amie-sam-mediator runtests
+
+
+docker rm ${CONT} >/dev/null
+docker container inspect ${CONT} >/dev/null 2>&1
+if [ $? = 0 ] ; then
+    echo "Unable to remove container ${CONT}" >&2
+fi
+done
+rm -rf ${TEMPDIR}
+trap - 0 1 2 13 15
+exit $rc
+
