@@ -1,0 +1,118 @@
+version: '3.7'
+
+services:
+
+  admin:
+    image: ghcr.io/ncar/amie-sam-mediator:latest
+    init: true
+    command: [ "/bin/bash"" ]
+    volumes:
+      - ${LOCAL_SECRETS}:${SECRETS_VOL}:ro,z
+      - ${LOCAL_CONFIG}:${CONFIG_VOL}:ro,z
+      - ${LOCAL_DATA}:${DATA_VOL}:z
+      - type: tmpfs
+        target: /tmp
+    stdin_open: true
+    tty: true
+    env_file: .env
+    environment:
+      SERVICE: admin
+
+  amie:
+    image: ghcr.io/ncar/amie-sam-mediator:latest
+    init: true
+    command: [ "/usr/local/amie-sam-mediator/bin/amie","-sv","logrequest" ]
+    volumes:
+      - ${LOCAL_SECRETS}:${SECRETS_VOL}:ro,z
+      - ${LOCAL_CONFIG}:${CONFIG_VOL}:ro,z
+      - ${LOCAL_DATA}:${DATA_VOL}:z
+      - type: tmpfs
+        target: /tmp
+    env_file: .env
+    environment:
+      SERVICE: nightlyLogRequest
+
+  downloadPBSAcctLogs:
+    image: ghcr.io/ncar/acct-sam-etl:latest
+    init: true
+    command: [ "/usr/local/acct-sam-etl/bin/etl", "-rvv", "DownloadPBSAcctLogs" ]
+    volumes:
+      - ${LOCAL_SECRETS}:${SECRETS_VOL}:ro,z
+      - ${LOCAL_CONFIG}:${CONFIG_VOL}:ro,z
+      - ${LOCAL_DATA}:${DATA_VOL}:z
+      - type: tmpfs
+        target: /tmp
+    tty: true
+    env_file: .env
+    environment:
+      SERVICE: downloadPBSAcctLogs
+
+  filterPBSAcctLogs:
+    image: ghcr.io/ncar/acct-sam-etl:latest
+    init: true
+    command: [ "/usr/local/acct-sam-etl/bin/etl", "-rvv", "FilterPBSAcctLogs" ]
+    volumes:
+      - ${LOCAL_SECRETS}:${SECRETS_VOL}:ro,z
+      - ${LOCAL_CONFIG}:${CONFIG_VOL}:ro,z
+      - ${LOCAL_DATA}:${DATA_VOL}:z
+      - type: tmpfs
+        target: /tmp
+    env_file: .env
+    environment:
+      SERVICE: filterPBSAcctLogs
+
+  assembleJobLogs:
+    image: ghcr.io/ncar/acct-sam-etl:latest
+    init: true
+    command: [ "/usr/local/acct-sam-etl/bin/etl", "-rvv", "AssembleJobLogs" ]
+    volumes:
+      - ${LOCAL_SECRETS}:${SECRETS_VOL}:ro,z
+      - ${LOCAL_CONFIG}:${CONFIG_VOL}:ro,z
+      - ${LOCAL_DATA}:${DATA_VOL}:z
+      - type: tmpfs
+        target: /tmp
+    env_file: .env
+    environment:
+      SERVICE: assembleJobLogs
+
+  splitByV2Machine:
+    image: ghcr.io/ncar/acct-sam-etl:latest
+    init: true
+    command: [ "/usr/local/acct-sam-etl/bin/etl", "-rvv", "SplitByV2Machine" ]
+    volumes:
+      - ${LOCAL_SECRETS}:${SECRETS_VOL}:ro,z
+      - ${LOCAL_CONFIG}:${CONFIG_VOL}:ro,z
+      - ${LOCAL_DATA}:${DATA_VOL}:z
+      - type: tmpfs
+        target: /tmp
+    env_file: .env
+    environment:
+      SERVICE: splitByV2Machine
+
+  samV2Transform:
+    image: ghcr.io/ncar/acct-sam-etl:latest
+    init: true
+    command: [ "/usr/local/acct-sam-etl/bin/etl", "-rvv", "SAMV2Transformer" ]
+    volumes:
+      - ${LOCAL_SECRETS}:${SECRETS_VOL}:ro,z
+      - ${LOCAL_CONFIG}:${CONFIG_VOL}:ro,z
+      - ${LOCAL_DATA}:${DATA_VOL}:z
+      - type: tmpfs
+        target: /tmp
+    env_file: .env
+    environment:
+      SERVICE: samV2Transformer
+
+  samV2Uploader:
+    image: ghcr.io/ncar/acct-sam-etl:latest
+    init: true
+    command: [ "/usr/local/acct-sam-etl/bin/etl", "-rvv", "SAMV2Uploader" ]
+    volumes:
+      - ${LOCAL_SECRETS}:${SECRETS_VOL}:ro,z
+      - ${LOCAL_CONFIG}:${CONFIG_VOL}:ro,z
+      - ${LOCAL_DATA}:${DATA_VOL}:z
+      - type: tmpfs
+        target: /tmp
+    env_file: .env
+    environment:
+      SERVICE: samV2Uploader

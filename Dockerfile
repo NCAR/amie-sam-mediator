@@ -1,7 +1,6 @@
 ARG SWEET_QUAL=:latest
-FROM ghcr.io/ncar/sweet${SWEET_QUAL}
-
 ARG AMIEMEDIATOR_QUALIFIER=:latest
+FROM ghcr.io/ncar/sweet${SWEET_QUAL}
 FROM ghcr.io/ncar/amiemediator${AMIEMEDIATOR_QUALIFIER}
 
 COPY --from=0 /usr/local /usr/local/

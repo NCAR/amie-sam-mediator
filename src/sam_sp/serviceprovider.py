@@ -49,6 +49,7 @@ class ServiceProvider(ServiceProviderIF):
             config['sam_url'],
             config['sam_user'],
             config['sam_password'],
+            int(config['pause_max']),
             self.people_client,
             self.mnemonic_code_maker
         )
@@ -154,6 +155,11 @@ class ServiceProvider(ServiceProviderIF):
         persons = self.people_client.fuzzymatch_person(**choice_parms)
         return self._submit_request('choose_or_add_person',
                                     kwargs, persons)
+
+    def update_person_DNs(self, *args, **kwargs) -> TaskStatus:
+        kwargs['task_state'] = "successful"
+        ts = TaskStatus(*args, **kwargs)
+        return ts
 
     def activate_person(self, *args, **kwargs) -> TaskStatus:
         ts = self._lookup_task('activate_person', kwargs)

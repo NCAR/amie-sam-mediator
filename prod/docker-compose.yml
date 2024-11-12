@@ -1,0 +1,31 @@
+services:
+
+  admin:
+    image: ghcr.io/ncar/amie-sam-mediator:latest
+    init: true
+    command: [ "/bin/bash" ]
+    volumes:
+      - ${LOCAL_SECRETS}:${SECRETS_VOL}:ro,z
+      - ${LOCAL_CONFIG}:${CONFIG_VOL}:ro,z
+      - ${LOCAL_DATA}:${DATA_VOL}:z
+      - type: tmpfs
+        target: /tmp
+    stdin_open: true
+    tty: true
+    env_file: .env
+    environment:
+      SERVICE: admin
+
+  amie:
+    image: ghcr.io/ncar/amie-sam-mediator:latest
+    init: true
+    command: [ "/usr/local/amie-sam-mediator/bin/amie", "-p" ]
+    volumes:
+      - ${LOCAL_SECRETS}:${SECRETS_VOL}:ro,z
+      - ${LOCAL_CONFIG}:${CONFIG_VOL}:ro,z
+      - ${LOCAL_DATA}:${DATA_VOL}:z
+      - type: tmpfs
+        target: /tmp
+    env_file: .env
+    environment:
+      SERVICE: amie

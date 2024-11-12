@@ -6,55 +6,12 @@ USAGE="Usage: ${USAGE1}
          or
        ${USAGE2}"
 
-EDITED_VIEWPACKETS_HELP_TEXT='
-The "amie" program mediates between the AMIE server and the local service
-provider; specifically, it retrieves AMIE packets from the AMIE server, and
-for each packet it triggers a set of operations on the service provider.
-    
-When an operation cannot be completed immediately, the service provider will
-create a "task" object. The "amie" program will automatically monitor the
-status of each task until all work for the packet is complete and a reply can
-be sent back to the AMIE server.
-
-When "amie" accepts an AMIE packet for work, it converts it into an
-"ActionablePacket" object and ties any associated tasks to this object.
-Whenever an ActionablePacket is created/modified, "amie" writes/updates a
-"snapshot" file that captures the relevant state of the ActionablePacket as
-readable text. All snapshot files are written to a directory identified in the
-"amie" configuration file ("snapshot_dir"). When work for a packet is complete,
-its associated ActionablePacket object is destroyed and the corresponding
-snapshot file is removed.
-
-The viewpackets program simply monitors the snapshot directory and prints what
-it finds.
-
-  -l|--loop       : Normally, viewpackets lists the current status of packets or
-                    the contents of a specfic packet and then exists. The
-                    --loop flag will cause viewpackets to continue reading
-                    snapshots and updating the display until a keyboard
-                    interrupt is encountered or, if a single packet is being
-                    displayed, the snapshot is removed. In addition, if
-                    standard output is a terminal, the "clear" command is
-                    effectively executed at the start of each iteration.
-                    Updates are displayed when an update is detected or after
-                    the -d|--delay period (default=60 secs), whichever comes
-                    first.
-  -d|--delay=sec    The maximum time to wait in seconds before refreshing the
-                    display when in "loop" mode (default=60)
-  -h|--help       : Display help test and quit
-  key             : If present, the packet with the given name is displayed
-                    in full. Without this argument, a list of all packets and
-                    their status is displayed.
-'
-    
-
-HELP_TEXT="
+LOCALSITE_INTRO_TEXT="
 This script runs the \"bin/viewpackets\" script in the \"amiemediator\" package
 with a configuration file defined by the \"amie-sam-mediator\" package.
 Specifically, it uses the configuration file in the directory specified by the
 RUN_ENV environment variable. Run \"amiemediator/bin/amie --help\" for more
 information about how the script is configured.
-${EDITED_VIEWPACKETS_HELP_TEXT}
 "    
 
-export USAGE HELP_TEXT
+export USAGE LOCALSITE_INTRO_TEXT

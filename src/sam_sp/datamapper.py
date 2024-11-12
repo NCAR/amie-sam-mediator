@@ -32,12 +32,16 @@ COPY_SRC_IF_SRC_SET_TARG_UNSET = 4
 # target keys. Target keys can be a list of keys; in this case the same value
 # is copied to multiple target entries.
 #
+# In SAM, the transactionId is the amie_transaction_id (os:rs:ls:tid), the
+# job
 MAP = {
     ('SAMResponse',                   'Task'): {
         COPY_SRC_IF_SRC_SET: {
             'client':                 'client',
+            'transaction_context':    'amie_packet_type',
             'transaction_id':         'amie_transaction_id',
-            'job_key':                'amie_packet_rec_id',
+            'job_key':                'amie_packet_id',
+            'client_job_id':          'job_id',
             'task_name':              'task_name',
             'task_state':             'task_state',
             'timestamp':              'timestamp',
@@ -47,8 +51,11 @@ MAP = {
     },
     ('APacket',                       'SAMRequest'): {
         COPY_SRC_IF_SRC_SET: {
+            'client':                 'client',
+            'amie_packet_type':       'transaction_context',
             'amie_transaction_id':    'transaction_id',
-            'amie_packet_rec_id':     'job_key',
+            'amie_packet_id':         'job_key',
+            'job_id':                 'client_job_id',
             'task_name':              'task_name',
             'task_state':             'task_state',
             'timestamp':              'timestamp',
@@ -337,10 +344,6 @@ MAP = {
             'PersonID':               'ACCESSUsername',
         },
         COPY_SRC_IF_SRC_SET: {
-            'amie_transaction_id':    'transaction_id',
-            'amie_packet_rec_id':     'job_key',
-            'task_name':              'task_name',
-            'timestamp':              'timestamp',
             'FirstName':              'FirstName',
             'MiddleName':             'MiddleName',
             'LastName':               'LastName',

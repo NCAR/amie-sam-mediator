@@ -1,0 +1,68 @@
+services:
+
+  admin:
+    image: ghcr.io/ncar/amie-sam-mediator:latest
+    init: true
+    command: [ "/bin/bash" ]
+    volumes:
+      - ${LOCAL_SECRETS}:${SECRETS_VOL}:ro,z
+      - ${LOCAL_CONFIG}:${CONFIG_VOL}:ro,z
+      - ${LOCAL_DATA}:${DATA_VOL}:z
+      - type: tmpfs
+        target: /tmp
+    stdin_open: true
+    tty: true
+    env_file: .env
+    environment:
+      SERVICE: admin
+
+#  amie:
+#    image: ghcr.io/ncar/amie-sam-mediator:latest
+#    init: true
+#    command: [ "/usr/local/amie-sam-mediator/bin/amie", "-p" ]
+#    volumes:
+#      - ${LOCAL_SECRETS}:${SECRETS_VOL}:ro,z
+#      - ${LOCAL_CONFIG}:${CONFIG_VOL}:ro,z
+#      - ${LOCAL_DATA}:${DATA_VOL}:z
+#      - type: tmpfs
+#        target: /tmp
+#    env_file: .env
+#    environment:
+#      SERVICE: amie
+
+  peoplesearch:
+    image: ghcr.io/ncar/people-search:latest
+    init: true
+    volumes:
+      - ${LOCAL_SECRETS}:${SECRETS_VOL}:ro,z
+      - ${LOCAL_CONFIG}:${CONFIG_VOL}:ro,z
+      - ${LOCAL_DATA}:${DATA_VOL}:z
+      - type: tmpfs
+        target: /tmp
+    env_file: .env
+    environment:
+      CONFIG_DIR: /run/etc/peoplesearch
+      SECRETS_DIR: /run/secrets/peoplesearch
+      SERVICE: peoplesearch
+    ports:
+      - 9443:8443
+      - 9080:8080
+            
+
+  peoplesync:
+    image: ghcr.io/ncar/people-sync:latest
+    init: true
+    volumes:
+      - ${LOCAL_SECRETS}:${SECRETS_VOL}:ro,z
+      - ${LOCAL_CONFIG}:${CONFIG_VOL}:ro,z
+      - ${LOCAL_DATA}:${DATA_VOL}:z
+      - type: tmpfs
+        target: /tmp
+    env_file: .env
+    environment:
+      CONFIG_DIR: /run/etc/peoplesync
+      SECRETS_DIR: /run/secrets/peoplesync
+      SERVICE: peoplesync
+    ports:
+      - 10443:8443
+      - 10080:8080

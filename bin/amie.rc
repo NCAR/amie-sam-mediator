@@ -2,63 +2,56 @@
 # Override the actual amie help text with a simplified version
 USAGE1="${PROG} [-o|--once]"
 USAGE2="${PROG} -p|--persistent"
-USAGE3="${PROG} --showconfig"
-USAGE4="${PROG} -h|--help"
+USAGE3="${PROG} -l|--list"
+USAGE4="${PROG} -f|--fail=<trid>"
+USAGE5="${PROG} --showconfig"
+USAGE6="${PROG} -h|--help"
 USAGE="Usage: ${USAGE1}
          or
        ${USAGE2}
          or
        ${USAGE3}
          or
-       ${USAGE4}"
+       ${USAGE4}
+         or
+       ${USAGE5}
+         or
+       ${USAGE6}"
 
-EDITED_AMIE_HELP_TEXT='
-  -o|--once       : Normally, amie retrieves all in-progress packets
-                    from the AMIE server, processes them all to the extent
-                    that it can without waiting for the local service
-                    provider, and then repeats, indefinitely. The --once
-                    flag will run through the process once without
-                    repeating.
-  -p|--persistent : Normally, amie will exit if the service provider
-                    encounters an error that is considered a temporary error
-                    that is not a simple timeout (e.g. a "Connection refused"
-                    error). The --persistent flag will cause amie to
-                    keep retrying when it encounters this type of error. 
-  --showconfig    : Display the current configuration and exit.
-  -h|--help       : Display help test and quit
-'
-    
+LOCALSITE_OPTIONS_TEXT = ''
 
-HELP_TEXT="
+LOCALSITE_INTRO_TEXT="
 This script runs the \"bin/amie\" script in the \"amiemediator\" package
 with a configuration file defined by the \"amie-sam-mediator\" package.
 Specifically, it uses the configuration file in the directory specified by the
-RUN_ENV environment variable. Run \"amiemediator/bin/amie --help\" for more
-information about how the script is configured.
-${EDITED_AMIE_HELP_TEXT}
+RUN_ENV environment variable.
+"
+INTRO_TEXT="
+The \"amiemediator/bin/amie\" script mediates between the central AMIE service
+and the local "Service Provider" (which is what the \"amie-sam-mediator\"
+package defines). It normally runs in a loop as a daemon: it periodically
+polls the AMIE service for updates, breaks down AMIE requests into smaller
+tasks that it submits to the service provider back-end, assembles task results
+into AMIE response packets, and sends responses back to the AMIE service.
+"
 
-Local Site Configuration
-------------------------
-The "[localsite]" section for \"amie-sam-mediator\" supports the following
-keys:
-
-  package         : Name of the python package with the SAM ServiceProvider
-  module          : Module name of the SAM ServiceProvider
-  sam_url         : URL of the SAM server
-  people_url      : URL of the PeopleSearch server
-  sam_user        : User account for the SAM API
-  sam_password    : Password for sam_user
-  people_user     : User account for the People API
-  people_password : Password for people_user
+LOCALSITE_CONFIG_TEXT="
+  package            : Name of the python package with the SAM ServiceProvider
+  module             : Module name of the SAM ServiceProvider
+  sam_url            : URL of the SAM server
+  people_url         : URL of the PeopleSearch server
+  sam_user           : User account for the SAM API
+  sam_password       : Password for sam_user
+  people_user        : User account for the People API
+  people_password    : Password for people_user
   sam_mnem_code_suggestions_min :
-                    Minimum number of mnemonic code suggesting to make when
-                    a new mnemonic code must be created
+                       Minimum number of mnemonic code suggesting to make when
+                       a new mnemonic code must be created
   sam_mnem_code_suggestions_max :
-                    Maximum number of mnemonic code suggesting to make when
-                    a new mnemonic code must be created
+                       Maximum number of mnemonic code suggesting to make when
+                       a new mnemonic code must be created
+"
 
-'
-"    
+export USAGE LOCALSITE_INTRO_TEXT INTRO_TEXT LOCALSITE_CONFIG_TEXT
 
-export USAGE HELP_TEXT
 

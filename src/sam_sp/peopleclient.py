@@ -24,6 +24,13 @@ class PeopleCache(object):
         self.eorgfile = self.tempdir + "/external-org"
         self.iorgfile = self.tempdir + "/internal-org"
         self.personfile = self.tempdir + "/person"
+
+        # person-updated contains three lines: the first line is the unix time
+        # just before peopledb is queried, the second line is the number
+        # of bytes in the personfile, and the third line is the modification
+        # time of the personfile. The first time is used the next time peopledb
+        # is queried to get just the updates, and the size and second time
+        # are used to validate the person-updated file.
         self.personupdated = self.tempdir + "/person-updated"
 
     def have_ext_org_matchfile(self):
@@ -38,12 +45,40 @@ class PeopleCache(object):
     def have_person_file(self):
         return self._have_file(self.personfile)
 
+    def person_file_metadata(self):
+        if self._have_file(self.personfile):
+            size = os.stat(self.personfile).st_size
+            mtime = os.stat(self.personfile).st_mtime
+            return (size, mtime)
+        return (None, None)
+
     def person_file_updated(self):
         if self._have_file(self.personfile) and \
            self._have_file(self.personupdated):
-            return os.stat(self.personupdated).st_mtime
+            personfile_size = os.stat(self.personfile).st_size
+            personfile_mtime = os.stat(self.personfile).st_mtime
+            (recorded_qtime, recorded_size, recorded_mtime) = \
+                self._get_recorded_person_metadata()
+            if recorded_qtime and recorded_size and recorded_mtime and \
+               recorded_size == personfile_size and \
+               recorded_mtime == personfile_mtime:
+                    return recorded_qtime
         return 0
-
+    
+    def _get_recorded_person_metadata(self):
+        qtime = None
+        size = None
+        mtime = None
+        with open(self.personupdated, "r") as file:
+            if (line := file.readline()):
+                qtime = int(line)
+            if (line := file.readline()):
+                size = int(line)
+            if (line := file.readline()):
+                mtime = int(line)
+        return (qtime, size, mtime)
+        
+                        
     def _have_file(self,filename):
         return (Path(filename).is_file() and os.stat(filename).st_size > 0)
 
@@ -414,26 +449,33 @@ class PeopleClient(object):
         if not PERSONS:
             self._load_cached_persons()
             
+        persons = []
+        qtime = int(time.time())
+        last_run = str(int(self.cache.person_file_updated()))
+        persons.extend(self._load_typed_persons("internal",last_run))
+        persons.extend(self._load_typed_persons("external",last_run))
+        
+        if len(persons) == 0:
+            return
+        
         updatefile = self.cache.personupdated
         tmpupdatename = updatefile + ".t"
-        persons = []
-        lastRun = str(int(self.cache.person_file_updated()))
-        with open(tmpupdatename,"w") as file:
-            file.write("\n")
-            persons.extend(self._load_typed_persons("internal",lastRun))
-            persons.extend(self._load_typed_persons("external",lastRun))
-        if persons:
-            filename = self.cache.personfile
-            tmpname = filename + ".t"
-            mode = "w" if lastRun == "0" else "a"
-            with open(tmpname,"a") as file:
-                for person in persons:
-                    file.write(json.dumps(person)+"\n")
-            os.rename(tmpname,filename)
-            os.rename(tmpupdatename,updatefile)
+        filename = self.cache.personfile
+        tmpname = filename + ".t"
+        mode = "w" if last_run == "0" else "a"
+        with open(tmpname,mode) as file:
             for person in persons:
-                upid = int(person['upid'])
-                PERSONS[upid] = person
+                file.write(json.dumps(person)+"\n")
+        size = os.stat(tmpname).st_size
+        mtime = os.stat(tmpname).st_mtime
+        with open(tmpupdatename,"w") as file:
+            file.write(str(qtime)+"\n"+str(size)+"\n"+str(mtime)+"\n")
+            
+        os.rename(tmpname,filename)
+        os.rename(tmpupdatename,updatefile)
+        for person in persons:
+            upid = int(person['upid'])
+            PERSONS[upid] = person
 
     def _load_cached_persons(self):
         if not self.cache.have_person_file():

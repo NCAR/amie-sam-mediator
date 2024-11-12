@@ -68,9 +68,9 @@ class SAMTask(object):
     @staticmethod
     def get_key(task_data, task_name=None):
         tid = task_data['amie_transaction_id']
-        jkey = task_data['amie_packet_rec_id']
+        jkey = task_data['amie_packet_id']
         name = task_name if task_name else task_data['task_name']
-        return tid + '/' + jkey + '.' + name
+        return tid + '/' + jkey + '/' + name
 
 class SAMTaskCache(dict):
     def __init__(self, *args, **kwargs):
@@ -312,10 +312,8 @@ class TaskService(object):
         return self._change_SAM_task_state_to_syncing(task)
 
     def _change_SAM_task_state_to_syncing(self, task):
-        tid = task['amie_transaction_id']
-        jkey = task['amie_packet_rec_id']
-        taskname = task['task_name']
-        url = 'tasks/AMIE/' + tid + '/' + jkey + '/' + taskname + '/state'
+        task_key = SAMTask.get_key(task)
+        url = 'tasks/AMIE/' + task_key + '/state'
         data = '"syncing"'
         result = self.sam_client.put(url,data)
         updated_task = self._convert_result(result, task)
@@ -340,10 +338,8 @@ class TaskService(object):
     def _revisit_task(self, task):
         start_st = self.task_cache.lookup(task)
 
-        trid = task['amie_transaction_id']
-        jobkey = task['amie_packet_rec_id']
-        taskname = task['task_name']
-        url = 'tasks/AMIE/' + trid + '/' + jobkey + '/' + taskname
+        task_key = SAMTask.get_key(task)
+        url = 'tasks/AMIE/' + task_key
         request = map_data('APacket','SAMRequest', task)
         request['client'] = 'AMIE'
 

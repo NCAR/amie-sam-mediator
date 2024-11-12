@@ -1,0 +1,25 @@
+:
+PROJECT_BASE=/Users/gwilliam/projects
+PACKAGE=amie-sam-mediator
+RUN_ENV=dev
+SERVICE=amie
+export PACKAGE RUN_ENV SERVICE
+
+SWEET_DIR=${PROJECT_BASE}/sweet
+AMIEMEDIATOR_DIR=${PROJECT_BASE}/amiemediator
+AMIE_SAM_MEDIATOR_DIR=${PROJECT_BASE}/${PACKAGE}
+SP_DIR=${AMIE_SAM_MEDIATOR_DIR}/${RUN_ENV}
+VENV_DIR=${SP_DIR}/venv
+LOCAL_SECRETS=/Users/gwilliam/.secrets/docker/
+
+SECRETS_DIR=${SP_DIR}/venv-secrets
+mkdir -p ${SECRETS_DIR}
+chmod 700 ${SECRETS_DIR}
+${SWEET_DIR}/sbin/flatten-config-tree ${LOCAL_SECRETS} ${SECRETS_DIR}
+
+if [ ":${PYTHONPATH}" = ":" ] ; then
+   PYTHONPATH="${AMIE_SAM_MEDIATOR_DIR}/src"
+else
+   PYTHONPATH="${AMIE_SAM_MEDIATOR_DIR}/src:${PYTHONPATH}"
+fi
+

@@ -1,7 +1,7 @@
 import json
 import requests
 from miscfuncs import truthy, to_expanded_string
-from spexception import ServiceProviderTemporaryError
+from spexception import (ServiceProviderTemporaryError, ServiceProviderError)
 from taskstatus import TaskStatus
 from sam_sp.peopledata import PeopleExternalOrg
 from sam_sp.samdata import InternalOrg, MnemonicCode
@@ -13,15 +13,18 @@ FOS_AOIS = dict
 MNEMONIC_CODES_UPDATED = 0
 VERIFY_SSL = False
 
+
 class SAMClient(object):
 
-    def __init__(self, url, user, password, people_client, mnemonic_code_maker):
+    def __init__(self, url, user, password, tmout_secs, people_client,
+                 mnemonic_code_maker):
         if not url.endswith("/"):
             url = url + "/"
         self.url = url
 
         self.session = requests.Session()
         self.session.auth = (user, password)
+        self.tmout = int(tmout_secs)
         self.people_client = people_client
         self.mnemonic_code_maker = mnemonic_code_maker
 
@@ -30,7 +33,9 @@ class SAMClient(object):
         url = self._build_full_url(path)
         result = None
         try:
-            result = self.session.get(url, verify=VERIFY_SSL)
+            result = self.session.get(url,
+                                      verify=VERIFY_SSL,
+                                      timeout=self.tmout)
         except requests.exceptions.Timeout as te:
             raise ServiceProviderTemporaryError(te);
 
@@ -52,7 +57,7 @@ class SAMClient(object):
         result = None
         try:
             result = self.session.put(url, data=data, headers=headers,
-                                      verify=VERIFY_SSL)
+                                      verify=VERIFY_SSL, timeout=self.tmout)
         except requests.exceptions.Timeout as te:
             raise ServiceProviderTemporaryError(te);
 
@@ -74,7 +79,7 @@ class SAMClient(object):
         result = None
         try:
             result = self.session.post(url, data=data, headers=headers,
-                                       verify=VERIFY_SSL)
+                                       verify=VERIFY_SSL, timeout=self.tmout)
         except requests.exceptions.Timeout as te:
             raise ServiceProviderTemporaryError(te);
 
@@ -178,6 +183,10 @@ class SAMClient(object):
         
     def _get_mnemonic_data_for_inst(self, org_code):
         institution = self.people_client.get_external_org_by_nsf_code(org_code)
+        if not institution:
+            raise ServiceProviderError("Institution with nsf code "+org_code+\
+                                       " should have been verified" +\
+                                       " but people_client could not find it")
         name = institution['name']
         city = institution['city'] if institution['city'] != '' else 'null'
         if city is None or city == '':

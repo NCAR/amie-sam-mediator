@@ -1,0 +1,2 @@
+The configuration here assumes that SAM is running locally via IntelliJ, and
+that people-search and people-sync are running locally as containers.
