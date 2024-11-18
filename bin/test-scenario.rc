@@ -2,7 +2,7 @@
 # Override the actual test-scenario help text with a simplified version
 USAGE1="${PROG} scenario"
 USAGE2="${PROG} -h|--help"
-USAGE="Usage: ${USAGE1}
+USAGE="${USAGE1}
          or
        ${USAGE2}"
 
@@ -14,7 +14,7 @@ RUN_ENV environment variable. Run \"amiemediator/bin/amie --help\" for more
 information about how the script is configured.
 
 The \"AMIE-API-Testing.pdf\" document describes how to test your site's AMIE
-code using a set of "test scenarios". This utility will create a test scenario
+code using a set of \"test scenarios\". This utility will create a test scenario
 as described in the document, or reset test data.
 "    
 

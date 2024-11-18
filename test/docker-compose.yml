@@ -1,11 +1,9 @@
-version: '3.7'
-
 services:
 
   admin:
     image: ghcr.io/ncar/amie-sam-mediator:latest
     init: true
-    command: [ "/bin/bash"" ]
+    command: [ "/bin/bash" ]
     volumes:
       - ${LOCAL_SECRETS}:${SECRETS_VOL}:ro,z
       - ${LOCAL_CONFIG}:${CONFIG_VOL}:ro,z

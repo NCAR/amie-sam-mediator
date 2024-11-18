@@ -99,7 +99,6 @@ for pkg_dir_candidate in ${pkg_dir_candidates} ; do
     for run_env_candidate in ${run_env_candidates} ; do
         for conf_base_candidate in ${conf_base_candidates} ; do
             p="${pkg_dir_candidate}/${run_env_candidate}/${conf_base_candidate}"
-            echo p=$p
             if [ -f "${p}" ] && [ -r "${p}" ] ; then
                 CONFIG_FILE="${p}"
                 ENV_DIR="${run_env_candidate}"

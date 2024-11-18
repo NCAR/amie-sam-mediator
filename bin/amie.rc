@@ -6,7 +6,7 @@ USAGE3="${PROG} -l|--list"
 USAGE4="${PROG} -f|--fail=<trid>"
 USAGE5="${PROG} --showconfig"
 USAGE6="${PROG} -h|--help"
-USAGE="Usage: ${USAGE1}
+USAGE="${USAGE1}
          or
        ${USAGE2}
          or
@@ -18,7 +18,7 @@ USAGE="Usage: ${USAGE1}
          or
        ${USAGE6}"
 
-LOCALSITE_OPTIONS_TEXT = ''
+LOCALSITE_OPTIONS_TEXT=''
 
 LOCALSITE_INTRO_TEXT="
 This script runs the \"bin/amie\" script in the \"amiemediator\" package
@@ -28,7 +28,7 @@ RUN_ENV environment variable.
 "
 INTRO_TEXT="
 The \"amiemediator/bin/amie\" script mediates between the central AMIE service
-and the local "Service Provider" (which is what the \"amie-sam-mediator\"
+and the local \"Service Provider\" (which is what the \"amie-sam-mediator\"
 package defines). It normally runs in a loop as a daemon: it periodically
 polls the AMIE service for updates, breaks down AMIE requests into smaller
 tasks that it submits to the service provider back-end, assembles task results

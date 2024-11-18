@@ -2,7 +2,7 @@
 # Override the actual viewpackets help text with a simplified version
 USAGE1="${PROG} [-l|--loop] [-d|--delay=sec] [key]"
 USAGE2="${PROG} -h|--help"
-USAGE="Usage: ${USAGE1}
+USAGE="${USAGE1}
          or
        ${USAGE2}"
 
