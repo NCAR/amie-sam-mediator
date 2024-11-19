@@ -9,4 +9,4 @@ gendoc/**
 dev/.env
 dev/venv/**
 dev/venv-secrets/**
-dev/logs/**
+dev/data/**

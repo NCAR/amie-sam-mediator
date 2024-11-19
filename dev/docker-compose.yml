@@ -5,6 +5,8 @@ services:
     init: true
     command: [ "/bin/bash" ]
     volumes:
+      - ${LOCAL_BASE}/amiemediator:${PACKAGE_BASE}/amiemediator:z
+      - ${LOCAL_BASE}/amie-sam-mediator:${PACKAGE_BASE}/amie-sam-mediator:z
       - ${LOCAL_SECRETS}:${SECRETS_VOL}:ro,z
       - ${LOCAL_CONFIG}:${CONFIG_VOL}:ro,z
       - ${LOCAL_DATA}:${DATA_VOL}:z
@@ -16,19 +18,21 @@ services:
     environment:
       SERVICE: admin
 
-#  amie:
-#    image: ghcr.io/ncar/amie-sam-mediator:latest
-#    init: true
-#    command: [ "/usr/local/amie-sam-mediator/bin/amie", "-p" ]
-#    volumes:
-#      - ${LOCAL_SECRETS}:${SECRETS_VOL}:ro,z
-#      - ${LOCAL_CONFIG}:${CONFIG_VOL}:ro,z
-#      - ${LOCAL_DATA}:${DATA_VOL}:z
-#      - type: tmpfs
-#        target: /tmp
-#    env_file: .env
-#    environment:
-#      SERVICE: amie
+  amie:
+    image: ghcr.io/ncar/amie-sam-mediator:latest
+    init: true
+    command: [ "/usr/local/amie-sam-mediator/bin/amie", "-p" ]
+    volumes:
+      - ${LOCAL_BASE}/amiemediator:${PACKAGE_BASE}/amiemediator:z
+      - ${LOCAL_BASE}/amie-sam-mediator:${PACKAGE_BASE}/amie-sam-mediator:z
+      - ${LOCAL_SECRETS}:${SECRETS_VOL}:ro,z
+      - ${LOCAL_CONFIG}:${CONFIG_VOL}:ro,z
+      - ${LOCAL_DATA}:${DATA_VOL}:z
+      - type: tmpfs
+        target: /tmp
+    env_file: .env
+    environment:
+      SERVICE: amie
 
   peoplesearch:
     image: ghcr.io/ncar/people-search:latest

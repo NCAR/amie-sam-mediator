@@ -1,10 +1,10 @@
 :
 # Override the actual amie help text with a simplified version
-USAGE1="${PROG} [-o|--once]"
-USAGE2="${PROG} -p|--persistent"
-USAGE3="${PROG} -l|--list"
-USAGE4="${PROG} -f|--fail=<trid>"
-USAGE5="${PROG} --showconfig"
+USAGE1="${PROG} [-D] [-o|--once]"
+USAGE2="${PROG} [-D] -p|--persistent"
+USAGE3="${PROG} [-D] -l|--list"
+USAGE4="${PROG} [-D] -f|--fail=<trid>"
+USAGE5="${PROG} [-D] --showconfig"
 USAGE6="${PROG} -h|--help"
 USAGE="${USAGE1}
          or
@@ -18,7 +18,6 @@ USAGE="${USAGE1}
          or
        ${USAGE6}"
 
-LOCALSITE_OPTIONS_TEXT=''
 
 LOCALSITE_INTRO_TEXT="
 This script runs the \"bin/amie\" script in the \"amiemediator\" package
@@ -34,6 +33,7 @@ polls the AMIE service for updates, breaks down AMIE requests into smaller
 tasks that it submits to the service provider back-end, assembles task results
 into AMIE response packets, and sends responses back to the AMIE service.
 "
+LOCALSITE_OPTIONS_TEXT=''
 
 LOCALSITE_CONFIG_TEXT="
   package            : Name of the python package with the SAM ServiceProvider
@@ -52,6 +52,14 @@ LOCALSITE_CONFIG_TEXT="
                        a new mnemonic code must be created
 "
 
-export USAGE LOCALSITE_INTRO_TEXT INTRO_TEXT LOCALSITE_CONFIG_TEXT
+LOCALSITE_SECRET_PARMS="sam_password people_password"
+
+export \
+  LOCALSITE_SECRET_PARMS \
+  USAGE \
+  LOCALSITE_INTRO_TEXT \
+  INTRO_TEXT \
+  LOCALSITE_OPTIONS_TEXT \
+  LOCALSITE_CONFIG_TEXT
 
 
