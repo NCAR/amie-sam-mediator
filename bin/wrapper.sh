@@ -31,19 +31,34 @@ create a file in the same directory called "<name>.rc", where <name> is the
 name of the target program (e.g. "amie.rc"). ${WRAPPERNAME} will source this
 file before doing anything else.
 
-There are four environment variables that ${WRAPPERNAME} will subsequently use
-if they are set and not empty: CONFIG_INI, PACKAGE_DIR, RUN_ENV, and
-AMIEMEDIATOR_DIR.
+There are five environment variables that ${WRAPPERNAME} will subsequently use
+if they are set and not empty: CONFIG_INI, CONFIG_DIR, PACKAGE_DIR, RUN_ENV,
+and AMIEMEDIATOR_DIR.
 
-CONFIG_INI is assumed to name a configuration file. PACKAGE_DIR is assumed to
-name a directory containing all of your site-specific files. (In the example
-above, it would be "mydir".) RUN_ENV is assumed to name a subdirector under
-${PACKAGE_DIR} containing run-time configuration files; it is typically
-something like "test", "prod", or "dev", for example. AMIEMEDIATOR_DIR is the
-top-level directory where the amiemediator package is installed.
+CONFIG_INI is assumed to name the application configuration file. CONFIG_DIR
+is assumed to name a directory containing configuration files. PACKAGE_DIR is
+assumed to name a directory containing all of your site-specific files. (In
+the example above, it would be "mydir".) RUN_ENV is assumed to name a
+subdirector under \${PACKAGE_DIR} containing run-time configuration files; it
+is typically something like "test", "prod", or "dev", for example.
+AMIEMEDIATOR_DIR is the top-level directory where the amiemediator package is
+installed.
 
 If CONFIG_INI is not set or does not name a readable file, ${WRAPPERNAME} will
-look for it under \$PACKAGE_DIR/\$RUN_ENV.
+search for a file called \"config.init\" or \"config.ini\" in the following
+directories (assuming the variables used to build the paths are set):
+    \${CONFIG_DIR}
+    \${PACKAGE_DIR}
+    \${PACKAGE_DIR}/${RUN_ENV}
+    \${SCRIPTDIR}/..
+    \${SCRIPTDIR}/../..
+    \${SCRIPTDIR}
+    .
+    ..
+
+The SCRIPTDIR variable is set internally to the directory containing the
+running script itself.
+under \${CONFIG_DIR}.it under \$PACKAGE_DIR/\$RUN_ENV.
 
 If PACKAGE_DIR is not set, ${WRAPPERNAME} will search for a reasonable
 default: it will look in the parent directory of the ${WRAPPERNAME} script,
@@ -84,66 +99,67 @@ pkg_dir_candidates="
   ..
 "
 
-if [ ":${CONFIG_INI}" != ":" ] ; then
-    if [ ! -f "${CONFIG_INI}" ] || [ ! -r "${CONFIG_INI}" ] ; then
-        echo "$PROG: \$CONFIG_INI file is not readable" >&2
-        exit 1
-    fi
-    config_dir=`dirname ${CONFIG_INI}`
-fi
-
-CONFIG_FILE=
-ENV_DIR=
-PKG_DIR=
+amie_dir_candidates="${AMIEMEDIATOR_DIR}"
+config_dir_candidates="${CONFIG_DIR}"
 for pkg_dir_candidate in ${pkg_dir_candidates} ; do
+    amie_dir_candidates="${amie_dir_candidates} ${pkg_dir_candidate}"
     for run_env_candidate in ${run_env_candidates} ; do
-        for conf_base_candidate in ${conf_base_candidates} ; do
-            p="${pkg_dir_candidate}/${run_env_candidate}/${conf_base_candidate}"
-            if [ -f "${p}" ] && [ -r "${p}" ] ; then
-                CONFIG_FILE="${p}"
-                ENV_DIR="${run_env_candidate}"
-                PKG_DIR="${pkg_dir_candidate}"
-                break
-            fi
-        done
-        if [ ":${PKG_DIR}" != ":" ] ; then
-            break
-        fi
-    done                
-    if [ ":${PKG_DIR}" != ":" ] ; then
-        break
-    fi
+        pr_cand="${pkg_dir_candidate}/${run_env_candidate}"
+        config_dir_candidates="${config_dir_candidates} ${pr_cand}"
+    done
 done
-if [ ":${CONFIG_INI}" = ":" ] ; then
-    CONFIG_INI="${CONFIG_FILE}"
-fi
-export CONFIG_INI
 
-if [ ":${PKG_DIR}" != ":" ] ; then
-    PKG_DIR=`cd ${PKG_DIR} ; /bin/pwd`
-else
-    PKG_DIR=`/bin/pwd`
-fi
-
-amie_file=src/mediator.py
-
-amie_dir_candidates="${AMIEMEDIATOR_DIR}
-${PKG_DIR}/../amiemediator
-${PKG_DIR}/../../amiemediator
+config_file_candidates="${CONFIG_INI}"
+for config_dir_candidate in ${config_dir_candidates} ; do
+    for conf_base_candidate in ${conf_base_candidates} ; do
+        cf="${config_dir_candidate}/${conf_base_candidate}"
+        config_file_candidates="${config_file_candidates} ${cf}"
+    done    
+done
+CONFIG_FILE=
+CONF_ERR_LOG=
+for config_file_candidate in ${config_file_candidates} ; do
+    if [ ! -f "${config_file_candidate}" ] ; then
+        CONF_ERR_LOG="${CONF_ERR_LOG}  ${config_file_candidate}: no such file
 "
-AMIE_DIR=
-for amie_dir_candidate in ${amie_dir_candidates} ; do
-    check_file=${amie_dir_candidate}/${amie_file}
-    if [ -f ${check_file} ] ; then
-        AMIE_DIR="${amie_dir_candidate}"
-        break
+    elif [ ! -r "${config_file_candidate}" ] ; then
+        CONF_ERR_LOG="${CONF_ERR_LOG}  ${config_file_candidate}: file not readable
+"
+    else
+        CONFIG_FILE="${config_file_candidate}"
     fi
 done
-if [ ":${AMIE_DIR}" = ":" ] ; then
-    echo "${PROG}: cannot determine amiemediator package base directory" >&2
+if [ ":${CONFIG_FILE}" = ":" ] ; then
+    echo "$PROG: unable to determine application configuration file:" >&2
+    echo "${CONF_ERR_LOG}" >&2
     exit 1
 fi
-AMIEMEDIATOR_DIR=`cd ${AMIE_DIR} ; /bin/pwd`
+CONFIG_INI="${CONFIG_FILE}"
+export CONFIG_INI
+
+amie_dir_candidates="${AMIEMEDIATOR_DIR}"
+for pkg_dir_candidate in ${pkg_dir_candidates} ; do
+    for run_env_candidate in ${run_env_candidates} ; do
+        pd="${pkg_dir_candidate}/${run_env_candidate}"
+        amie_dir_candidates="${amie_dir_candidates} ${pd}/../amiemediator"
+        amie_dir_candidates="${amie_dir_candidates} ${pd}/../../amiemediator"
+    done                
+done
+
+amiemediator_dir=
+amie_file=src/mediator.py
+for ad in ${amie_dir_candidates} ; do
+    af="${ad}/${amie_file}"
+    if [ -f "${af}" ] && [ -r "${af}" ] ; then
+        amiemediator_dir="${ad}"
+        break
+    fi
+done
+if [ ":${amiemediator_dir}" = ":" ] ; then
+    echo "$PROG: unable to determine location of amiemediator package" >&2
+    exit 1
+fi
+AMIEMEDIATOR_DIR=`cd ${amiemediator_dir} ; /bin/pwd`
 export AMIEMEDIATOR_DIR
 
 PYPROG="${AMIEMEDIATOR_DIR}/bin/${PROG}"
