@@ -17,6 +17,7 @@ services:
     env_file: .env
     environment:
       SERVICE: admin
+      VERIFY_SSL: false
 
   amie:
     image: ghcr.io/ncar/amie-sam-mediator:latest
@@ -33,6 +34,7 @@ services:
     env_file: .env
     environment:
       SERVICE: amie
+      VERIFY_SSL: false
 
   peoplesearch:
     image: ghcr.io/ncar/people-search:latest
@@ -48,6 +50,7 @@ services:
       CONFIG_DIR: /run/etc/peoplesearch
       SECRETS_DIR: /run/secrets/peoplesearch
       SERVICE: peoplesearch
+      VERIFY_SSL: false
     ports:
       - 9443:8443
       - 9080:8080
@@ -67,6 +70,7 @@ services:
       CONFIG_DIR: /run/etc/peoplesync
       SECRETS_DIR: /run/secrets/peoplesync
       SERVICE: peoplesync
+      VERIFY_SSL: false
     ports:
       - 10443:8443
       - 10080:8080

@@ -1,3 +1,4 @@
+import os
 import json
 import requests
 from miscfuncs import truthy, to_expanded_string
@@ -11,7 +12,7 @@ INTERNAL_ORGS = dict()
 MNEMONIC_CODES = dict()
 FOS_AOIS = dict
 MNEMONIC_CODES_UPDATED = 0
-VERIFY_SSL = False
+VERIFY_SSL = truthy(os.environ.get("VERIFY_SSL","true"))
 
 
 class SAMClient(object):

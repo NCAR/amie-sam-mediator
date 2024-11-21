@@ -12,7 +12,7 @@ EXTERNAL_ORGS = dict()
 EXTERNAL_ORG_FUZZIES = []
 RE_FUZZY_SPLIT = re.compile('^(.*):([0-9][0-9]*):([0-9][0-9]*)\s$')
 PERSONS = dict()
-VERIFY_SSL = True
+VERIFY_SSL = truthy(os.environ.get("VERIFY_SSL","true"))
 
 class PeopleCache(object):
     def __init__(self):
