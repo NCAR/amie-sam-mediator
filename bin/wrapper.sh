@@ -160,7 +160,10 @@ if [ ":${amiemediator_dir}" = ":" ] ; then
     exit 1
 fi
 AMIEMEDIATOR_DIR=`cd ${amiemediator_dir} ; /bin/pwd`
-export AMIEMEDIATOR_DIR
+PACKAGE_DIR=`cd ${PACKAGE_DIR} ; /bin/pwd`
+PYTHONPATH="${PACKAGE_DIR}/src:${AMIEMEDIATOR_DIR}/src"
+export AMIEMEDIATOR_DIR PYTHONPATH
+
 
 PYPROG="${AMIEMEDIATOR_DIR}/bin/${PROG}"
 if [ ! -f ${PYPROG} ] || [ ! -x ${PYPROG} ] ; then
