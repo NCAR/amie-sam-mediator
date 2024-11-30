@@ -22,7 +22,8 @@ services:
   amie:
     image: ghcr.io/ncar/amie-sam-mediator:latest
     init: true
-    command: [ "/usr/local/amie-sam-mediator/bin/amie", "-p" ]
+    command: [ "/usr/local/amie-sam-mediator/bin/amie", "-D", "-p" ]
+    restart: on-failure
     volumes:
       - ${LOCAL_BASE}/amiemediator:${PACKAGE_BASE}/amiemediator:z
       - ${LOCAL_BASE}/amie-sam-mediator:${PACKAGE_BASE}/amie-sam-mediator:z
@@ -35,6 +36,7 @@ services:
     environment:
       SERVICE: amie
       VERIFY_SSL: false
+      PEOPLECLIENT_TEMPDIR: ${DATA_VOL}/peopleclient
 
   peoplesearch:
     image: ghcr.io/ncar/people-search:latest
@@ -48,7 +50,7 @@ services:
     env_file: .env
     environment:
       CONFIG_DIR: /run/etc/peoplesearch
-      SECRETS_DIR: /run/secrets/peoplesearch
+      SECRETS_DIR: /run/secrets/amie-sam-mediator/peoplesearch
       SERVICE: peoplesearch
       VERIFY_SSL: false
     ports:
@@ -68,7 +70,7 @@ services:
     env_file: .env
     environment:
       CONFIG_DIR: /run/etc/peoplesync
-      SECRETS_DIR: /run/secrets/peoplesync
+      SECRETS_DIR: /run/secrets/amie-sam-mediator/peoplesync
       SERVICE: peoplesync
       VERIFY_SSL: false
     ports:

@@ -17,7 +17,7 @@ VERIFY_SSL = truthy(os.environ.get("VERIFY_SSL","true"))
 
 class PeopleCache(object):
     def __init__(self):
-        TEMPDIR = os.environ.get('TEMPDIR',None)
+        TEMPDIR = os.environ.get('PEOPLECLIENT_TEMPDIR',None)
         self.tempdir = TEMPDIR if TEMPDIR else '/tmp/peopleclient'
         if not Path(self.tempdir).is_dir():
             os.makedirs(self.tempdir)
@@ -72,11 +72,11 @@ class PeopleCache(object):
         mtime = None
         with open(self.personupdated, "r") as file:
             if (line := file.readline()):
-                qtime = int(line)
+                qtime = int(float(line))
             if (line := file.readline()):
-                size = int(line)
+                size = int(float(line))
             if (line := file.readline()):
-                mtime = int(line)
+                mtime = int(float(line))
         return (qtime, size, mtime)
         
                         
@@ -85,15 +85,24 @@ class PeopleCache(object):
 
 class PeopleClient(object):
 
-    def __init__(self, url=None, user=None, password=None):
+    def __init__(self, url=None, user=None, password=None, logger=None):
         self.cache = PeopleCache()
         if not url:
             return
         if not url.endswith("/"):
             url = url + "/"
         self.url = url
+        self.user = user
+        self.password = password
         self.session = requests.Session()
         self.session.auth = (user, password)
+        self.logger = logger
+
+    def _reconnect(self):
+        if self.logger is not None:
+            self.logger.debug("Re-establishing session")
+        self.session = requests.Session()
+        self.session.auth = (self.user, self.password)
 
     def get_internal_orgs(self):
         global INTERNAL_ORGS
@@ -232,8 +241,18 @@ class PeopleClient(object):
             INTERNAL_ORGS = orgs
 
     def _get(self, path):
-        global VERIFY_SSL
         url = self._build_full_url(path)
+        result = self._try_get(url)
+        
+        if result.status_code == 200:
+            return json.loads(result.text)
+        elif result.status_code == 404:
+            return None
+
+        self._raise_request_error('GET',url,result)
+                         
+    def _try_get(self, url):
+        global VERIFY_SSL
         result = None
         try:
             result = self.session.get(url, verify=VERIFY_SSL)
@@ -241,27 +260,25 @@ class PeopleClient(object):
         except requests.exceptions.Timeout as te:
             raise ServiceProviderTemporaryError(te);
 
-        if result.status_code == 200:
-            return json.loads(result.text)
-        elif result.status_code == 404:
-            return None
-
-        self._raise_request_error('GET',url,result)
+        return result
 
     def _put(self, path, data):
-        global VERIFY_SSL
         url = self._build_full_url(path)
-        result = None
-        try:
-            result = self.session.put(url, data=data, verify=VERIFY_SSL)
-        except requests.exceptions.Timeout as te:
-            raise ServiceProviderTemporaryError(te);
-
+        result = self._try_put(url, data)
+                         
         if result.status_code == 200:
             return json.loads(result.text)
 
         self._raise_request_error('PUT',url,result)
 
+    def _try_put(self, url, data):
+        global VERIFY_SSL
+        try:
+            result = self.session.put(url, data=data, verify=VERIFY_SSL)
+        except requests.exceptions.Timeout as te:
+            raise ServiceProviderTemporaryError(te);
+
+        return result
 
     def _raise_request_error(self, method, url, result):
         raise RuntimeError("People API returned " + str(result.status_code) + \

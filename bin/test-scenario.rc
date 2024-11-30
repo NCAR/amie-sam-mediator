@@ -17,6 +17,6 @@ The \"AMIE-API-Testing.pdf\" document describes how to test your site's AMIE
 code using a set of \"test scenarios\". This utility will create a test scenario
 as described in the document, or reset test data.
 "    
-LOCALSITE_OPTIONS_TEXT = ''
+LOCALSITE_OPTIONS_TEXT=''
 
 export USAGE INTRO_TEXT LOCALSITE_OPTIONS_TEXT

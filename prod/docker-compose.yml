@@ -29,3 +29,4 @@ services:
     env_file: .env
     environment:
       SERVICE: amie
+      PEOPLECLIENT_TEMPDIR: ${DATA_VOL}/peopleclient

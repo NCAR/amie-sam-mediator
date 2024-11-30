@@ -23,22 +23,22 @@ class SAMClient(object):
             url = url + "/"
         self.url = url
 
+        self.user = user
+        self.password = password
         self.session = requests.Session()
         self.session.auth = (user, password)
         self.tmout = int(tmout_secs)
         self.people_client = people_client
         self.mnemonic_code_maker = mnemonic_code_maker
 
+    def _reconnect(self):
+        self.session = requests.Session()
+        self.session.auth = (self.user, self.password)
+        
+
     def get(self, path):
-        global VERIFY_SSL
         url = self._build_full_url(path)
-        result = None
-        try:
-            result = self.session.get(url,
-                                      verify=VERIFY_SSL,
-                                      timeout=self.tmout)
-        except requests.exceptions.Timeout as te:
-            raise ServiceProviderTemporaryError(te);
+        result = self._try_get(url)
 
         if result.status_code == 200:
             if result.text is None or result.text == '':
@@ -47,20 +47,21 @@ class SAMClient(object):
 
         self._raise_request_error("GET", url, result)
 
-    def put(self, path, data):
+    def _try_get(self, url):
         global VERIFY_SSL
-        headers = {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
-        }
-
-        url = self._build_full_url(path)
-        result = None
         try:
-            result = self.session.put(url, data=data, headers=headers,
-                                      verify=VERIFY_SSL, timeout=self.tmout)
+            result = self.session.get(url,
+                                      verify=VERIFY_SSL,
+                                      timeout=self.tmout)
+            
         except requests.exceptions.Timeout as te:
             raise ServiceProviderTemporaryError(te);
+        
+        return result
+
+    def put(self, path, data):
+        url = self._build_full_url(path)
+        result = self._try_put(url, data)
 
         if result.status_code == 200:
             if result.text is None or result.text == '':
@@ -69,20 +70,23 @@ class SAMClient(object):
 
         self._raise_request_error("PUT", url, result)
 
-    def post(self, path, data):
+    def _try_put(self, url, data):
         global VERIFY_SSL
         headers = {
             'Content-Type': 'application/json',
             'Accept': 'application/json'
         }
-
-        url = self._build_full_url(path)
-        result = None
         try:
-            result = self.session.post(url, data=data, headers=headers,
-                                       verify=VERIFY_SSL, timeout=self.tmout)
+            result = self.session.put(url, data=data, headers=headers,
+                                      verify=VERIFY_SSL, timeout=self.tmout)
         except requests.exceptions.Timeout as te:
             raise ServiceProviderTemporaryError(te);
+        
+        return result
+        
+    def post(self, path, data):
+        url = self._build_full_url(path)
+        result = self._try_post(url, data)
 
         if result.status_code == 200:
             if result.text is None or result.text == '':
@@ -91,6 +95,20 @@ class SAMClient(object):
 
         self._raise_request_error("POST", url, result)
 
+    def _try_post(self, url, data):
+        global VERIFY_SSL
+        headers = {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+        }
+        try:
+            result = self.session.post(url, data=data, headers=headers,
+                                       verify=VERIFY_SSL, timeout=self.tmout)
+        except requests.exceptions.Timeout as te:
+            raise ServiceProviderTemporaryError(te);
+
+        return result
+        
     def _raise_request_error(self, method, url, result):
         if result.status_code == 404:
             # A 404 can occur with any url when SAM is first coming up. If it

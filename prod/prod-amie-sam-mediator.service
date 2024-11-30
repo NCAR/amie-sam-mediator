@@ -1,0 +1,17 @@
+#Systemd for amie-sam-mediator/prod
+[Unit]
+Description=AMIE-SAM Mediator service (dockerized)
+Requires=default.target
+After=default.target
+
+[Service]
+Type=simple
+EnvironmentFile=/home/swes/amie-sam-mediator/prod/service.env
+WorkingDirectory=/home/swes/amie-sam-mediator/prod
+ExecStartPre=/usr/bin/podman-compose up -d
+ExecStart=/home/swes/sweet/bin/run-at ${MONSCHED} /home/swes/amie-sam-mediator/opsmonitor.sh
+ExecStopPost=/usr/bin/podman-compose stop
+Restart=always
+
+[Install]
+WantedBy=default.target

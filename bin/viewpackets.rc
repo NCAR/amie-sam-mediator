@@ -13,6 +13,6 @@ Specifically, it uses the configuration file in the directory specified by the
 RUN_ENV environment variable. Run \"amiemediator/bin/amie --help\" for more
 information about how the script is configured.
 "
-LOCALSITE_OPTIONS_TEXT = ''
+LOCALSITE_OPTIONS_TEXT=''
 
 export USAGE LOCALSITE_INTRO_TEXT LOCALSITE_OPTIONS_TEXT

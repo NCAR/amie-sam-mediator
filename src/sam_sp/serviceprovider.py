@@ -39,7 +39,8 @@ class ServiceProvider(ServiceProviderIF):
         self.people_client = PeopleClient(
             config['people_url'],
             config['people_user'],
-            config['people_password']
+            config['people_password'],
+            self.logger
         )
         self.mnemonic_code_maker = MnemonicCodeMaker(
             int(config['sam_mnem_code_suggestions_min']),
