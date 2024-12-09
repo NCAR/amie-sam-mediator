@@ -273,7 +273,7 @@ get_compose_info() {
             echo "OM_COMP_NAMES=\"\${OM_COMP_NAMES} ${name}\"" >>${TMPDIR}/compose_info
         fi
         case ${name} in
-            *_admin_*)
+            *_amieadmin_*)
                 prefix=`expr "${name}" : '\(.*\)_admin_.*'`
                 suffix=`expr "${name}" : '.*_admin_\(.*\)'`
                 echo "OM_PREFIX=${prefix}" >>${TMPDIR}/compose_info

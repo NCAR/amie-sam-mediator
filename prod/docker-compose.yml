@@ -1,6 +1,6 @@
 services:
 
-  admin:
+  amieadmin:
     image: ghcr.io/ncar/amie-sam-mediator:latest
     init: true
     command: [ "/bin/bash" ]
