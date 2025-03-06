@@ -368,7 +368,7 @@ MAP = {
             'BusinessPhoneNumber':    'BusinessPhoneNumber',
             'Email':                  'Email',
             'PersonID':               'PersonID',
-            'ProjectID':              'ProjectID',
+            'project_id':             'ProjectID',
             'RemoteSiteLogin':        'RemoteSiteLogin',
             'Resource':               'Resource',
             'Username':               'Username',
@@ -414,7 +414,8 @@ def map_data(from_class, to_class, from_dict, to_dict=None):
             continue
 
         if ss_map is not None:
-            _copy_COPY_SRC_IF_SRC_SET_values(ss_map, source_key, source_val, target)
+            _copy_COPY_SRC_IF_SRC_SET_values(ss_map, source_key, source_val,
+                                             target)
 
         if sstu_map is not None:
             _copy_COPY_SRC_IF_SRC_SET_TARG_UNSET_values(sstu_map, source_key,
