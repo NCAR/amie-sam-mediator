@@ -367,7 +367,6 @@ MAP = {
         COPY_SRC_OR_ADD_NONE: {
             'BusinessPhoneNumber':    'BusinessPhoneNumber',
             'Email':                  'Email',
-            'Email',
             'PersonID':               'PersonID',
             'ProjectID':              'ProjectID',
             'RemoteSiteLogin':        'RemoteSiteLogin',
