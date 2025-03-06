@@ -363,6 +363,18 @@ MAP = {
             'DeletePersonID':         'DeletePersonID',
         },
     },
+    ('APacket',                       'notify_user'): {
+        COPY_SRC_OR_ADD_NONE: {
+            'BusinessPhoneNumber':    'BusinessPhoneNumber',
+            'Email':                  'Email',
+            'Email',
+            'PersonID':               'PersonID',
+            'ProjectID':              'ProjectID',
+            'RemoteSiteLogin':        'RemoteSiteLogin',
+            'Resource':               'Resource',
+            'Username':               'Username',
+        },
+    },
 }
 
 def map_data(from_class, to_class, from_dict, to_dict=None):

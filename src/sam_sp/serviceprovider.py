@@ -369,3 +369,10 @@ class ServiceProvider(ServiceProviderIF):
             return ts
         return self._submit_request('merge_person',kwargs)
 
+
+    def notify_user(self, *args, **kwargs) -> TaskStatus:
+        ts = self._lookup_task('notify_user', kwargs)
+        if ts:
+            return ts
+        return self._submit_request('notify_user',kwargs)
+        
