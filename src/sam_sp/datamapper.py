@@ -369,7 +369,7 @@ MAP = {
             'contingent_resources':   'AdditionalResources',
             'Email':                  'Email',
             'PersonID':               'PersonID',
-            'project_id':             'project_id',
+            'project_id':             'ProjectID',
             'RemoteSiteLogin':        'RemoteSiteLogin',
             'Username':               'Username',
         },
