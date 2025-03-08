@@ -371,9 +371,11 @@ MAP = {
             'PersonID':               'PersonID',
             'project_id':             'project_id',
             'RemoteSiteLogin':        'RemoteSiteLogin',
+            'Username':               'Username',
+        },
+        COPY_SRC_IF_SRC_SET: {
             'Resource':               'Resource',
             'resource_name':          'resource_name',
-            'Username':               'Username',
         },
     },
 }
