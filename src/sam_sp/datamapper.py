@@ -366,11 +366,13 @@ MAP = {
     ('APacket',                       'notify_user'): {
         COPY_SRC_OR_ADD_NONE: {
             'BusinessPhoneNumber':    'BusinessPhoneNumber',
+            'contingent_resources':   'AdditionalResources',
             'Email':                  'Email',
             'PersonID':               'PersonID',
-            'project_id':             'ProjectID',
+            'project_id':             'project_id',
             'RemoteSiteLogin':        'RemoteSiteLogin',
             'Resource':               'Resource',
+            'resource_name':          'resource_name',
             'Username':               'Username',
         },
     },

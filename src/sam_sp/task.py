@@ -148,6 +148,9 @@ class TaskService(object):
         self.logdumper.debug("Submitting POST request to SAM:",request)
         self.logger.debug("  request JSON:\n   "+jsrequest)
 
+        if task_name == "notify_user":
+            raise RuntimeError("DEBUG SHORT CIRCUIT")
+            
         result = self.sam_client.post('tasks',json.dumps(request))
     
         self.logdumper.debug("POST result:",result)
