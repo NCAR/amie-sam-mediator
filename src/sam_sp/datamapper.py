@@ -368,14 +368,15 @@ MAP = {
             'BusinessPhoneNumber':    'BusinessPhoneNumber',
             'contingent_resources':   'AdditionalResources',
             'Email':                  'Email',
-            'PersonID':               'PersonID',
             'project_id':             'ProjectID',
-            'RemoteSiteLogin':        'RemoteSiteLogin',
-            'Username':               'Username',
         },
         COPY_SRC_IF_SRC_SET: {
+            'person_id':              'PersonID',
+            'RemoteSiteLogin':        'RemoteSiteLogin',
             'Resource':               'Resource',
+            'ResourceList':           'ResourceList',
             'resource_name':          'resource_name',
+            'Username':               'Username',
         },
     },
 }
