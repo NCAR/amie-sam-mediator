@@ -158,7 +158,7 @@ class TaskService(object):
     def get_TaskStatus_from_result(self, result):
         task = self._convert_result(result)
         st = self.task_cache.update(task)
-        self.logger.debug("get_TaskStatus_from_result: "+ st)
+        self.logger.debug("get_TaskStatus_from_result: %",st)
 
         return TaskStatus(task)
 
