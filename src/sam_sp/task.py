@@ -152,7 +152,7 @@ class TaskService(object):
     
         self.logdumper.debug("POST result:",result)
 
-        task = get_TaskStatus_from_result(result)
+        task = self.get_TaskStatus_from_result(result)
         return task
 
     def get_TaskStatus_from_result(self, result):
