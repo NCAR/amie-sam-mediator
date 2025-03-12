@@ -343,7 +343,7 @@ check_container_status() {
 
 rotate_logs() {
     # This assumes containers are down
-    if [ ":${LOG_DIR}" != ":" ] && ; [ -d "${LOG_DIR}" ] ; then
+    if [ ":${LOG_DIR}" != ":" ] && [ -d "${LOG_DIR}" ] ; then
         ${ROTATE_LOGS} ${LOG_DIR}
         return $?
     fi
