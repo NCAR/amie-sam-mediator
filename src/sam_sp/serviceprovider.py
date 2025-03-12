@@ -282,8 +282,10 @@ class ServiceProvider(ServiceProviderIF):
             return None
         
         self.logdumper.debug("Looking up RPC task for RecordID="+recordID)
-        ts = self.sam_client.get("task/AMIE/"+recordID+"/create_project")
-        return TaskStatus(ts)
+        result = self.sam_client.get("task/AMIE/"+recordID+"/create_project")
+        if result is None:
+            return None
+        return self.task_service.get_TaskStatus_from_result(result)
 
     def reactivate_project(self, *args, **kwargs) -> TaskStatus:
         ts = self._lookup_task('reactivate_project', kwargs)

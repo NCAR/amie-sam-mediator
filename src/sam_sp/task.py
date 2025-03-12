@@ -152,6 +152,10 @@ class TaskService(object):
     
         self.logdumper.debug("POST result:",result)
 
+        task = get_TaskStatus_from_result(result)
+        return task
+
+    def get_TaskStatus_from_result(self, result):
         task = self._convert_result(result)
         st = self.task_cache.update(task)
         self.logger.debug("submit_request: %s", st)

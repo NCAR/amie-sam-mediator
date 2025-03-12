@@ -278,13 +278,13 @@ get_compose_info() {
                 suffix=`expr "${name}" : '.*_admin_\(.*\)'`
                 echo "OM_PREFIX=${prefix}" >>${TMPDIR}/compose_info
                 echo "OM_SUFFIX=${suffix}" >>${TMPDIR}/compose_info
-                echo "OM_ADMIN_NAME=${name}" >>${TMPDIR}/compose_info
+                echo "OM_ADMIN_NAME=${name}" >>${TMPDIR}/compose_info ;;
             *_amie_*)
                 prefix=`expr "${name}" : '\(.*\)_amie_.*'`
                 suffix=`expr "${name}" : '.*_amie_\(.*\)'`
                 echo "OM_PREFIX=${prefix}" >>${TMPDIR}/compose_info
                 echo "OM_SUFFIX=${suffix}" >>${TMPDIR}/compose_info
-                echo "OM_AMIE_NAME=${name}" >>${TMPDIR}/compose_info
+                echo "OM_AMIE_NAME=${name}" >>${TMPDIR}/compose_info ;;
         esac
     done
 }
