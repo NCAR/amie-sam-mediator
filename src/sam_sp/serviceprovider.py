@@ -276,7 +276,7 @@ class ServiceProvider(ServiceProviderIF):
             return ts
         return self._submit_request('create_project',kwargs)
         
-    def lookup_project(self, *args, **kwargs) -> TaskStatus:
+    def lookup_project_task(self, *args, **kwargs) -> TaskStatus:
         recordID = kwargs.get("RecordID",None)
         if recordID is None:
             return None
