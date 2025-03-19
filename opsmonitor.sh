@@ -228,26 +228,29 @@ check_status() {
         RC=${RC_WARN}
     fi
 
-    if [ ${RC} != ${RC_OK} ] ; then
-        bounce
-        rc=$?
+    for attempt in 1 2 3 ; do
+        if [ ${RC} != ${RC_OK} ] ; then
+            log "Bounce attempt #${attempt}"
+            bounce
+            rc=$?
 
-        if [ $rc != 0 ] ; then
-            RC=${RC_ERR}
-        else
-            RC="${RC_WARN}"
+            if [ $rc != 0 ] ; then
+                RC=${RC_ERR}
+            else
+                RC="${RC_WARN}"
+            fi
+
+            sleep 30
+
+            get_compose_info
+
+            check_container_status
+            rc=$?
+            if [ $rc != 0 ] ; then
+                RC=${RC_ERR}
+            fi
         fi
-
-        sleep 10
-
-        get_compose_info
-
-        check_container_status
-        rc=$?
-        if [ $rc != 0 ] ; then
-            RC=${RC_ERR}
-        fi
-    fi
+    done
 
     return ${RC}
 }
@@ -274,8 +277,8 @@ get_compose_info() {
         fi
         case ${name} in
             *_amieadmin_*)
-                prefix=`expr "${name}" : '\(.*\)_admin_.*'`
-                suffix=`expr "${name}" : '.*_admin_\(.*\)'`
+                prefix=`expr "${name}" : '\(.*\)_amieadmin_.*'`
+                suffix=`expr "${name}" : '.*_amieadmin_\(.*\)'`
                 echo "OM_PREFIX=${prefix}" >>${TMPDIR}/compose_info
                 echo "OM_SUFFIX=${suffix}" >>${TMPDIR}/compose_info
                 echo "OM_ADMIN_NAME=${name}" >>${TMPDIR}/compose_info ;;
