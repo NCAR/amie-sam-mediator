@@ -101,6 +101,7 @@ MAP = {
         COPY_SRC_OR_ADD_NONE: {
             'Organization':           'Organization',
             'OrgCode':                'OrgCode',
+            'GrantNumber':            'GrantNumber',
         },
         COPY_SRC_OR_ADD_BLANK: {
             'Department':             'Department',
@@ -123,6 +124,7 @@ MAP = {
         COPY_SRC_OR_ADD_NONE: {
             'LastName':               'LastName',
             'OrgCode':                'OrgCode',
+            'GrantNumber':            'GrantNumber',
         },
         COPY_SRC_OR_ADD_BLANK: {
             'FirstName':              'FirstName',
@@ -143,6 +145,7 @@ MAP = {
     ('APacket',                       'activate_person'): {
         COPY_SRC_OR_ADD_NONE: {
             'PersonID':               'PersonID',
+            'GrantNumber':            'GrantNumber',
         },
         COPY_SRC_OR_ADD_BLANK: {
             'FirstName':              'FirstName',
@@ -179,11 +182,13 @@ MAP = {
             'ProjectTitle':           'ProjectTitle',
             'Abstract':               'Abstract',
             'PiDepartment':           'PiDepartment',
+            'GrantNumber':            'GrantNumber',
         },
     },
     ('APacket',                       'choose_or_add_mnemonic_code'): {
         COPY_SRC_OR_ADD_NONE: {
             'PiOrganization':         'Institution',
+            'GrantNumber':            'GrantNumber',
         },
         COPY_SRC_IF_SRC_SET: {
             'PiCity':                 'City',
@@ -261,6 +266,7 @@ MAP = {
             'PersonID':               'PersonID',
             'ProjectID':              'ProjectID',
             'Resource':               'requested_resource',
+            'GrantNumber':            'GrantNumber',
         },
     },
     ('APacket',                       'inactivate_account'): {
@@ -287,7 +293,7 @@ MAP = {
         COPY_SRC_OR_ADD_NONE: {
             'ProjectID':              'ProjectID',
             'Resource':               'resource_name',
-
+            'GrantNumber':            'GrantNumber',
         },
         COPY_SRC_OR_ADD_BLANK: {
             'PersonID':               'ACCESSUsername',
@@ -306,13 +312,25 @@ MAP = {
     },
     ('APacket',                       'supplement_allocation'): {
         COPY_SRC_OR_ADD_NONE: {
-            'ProjectID':              'ProjectID',
-            'Resource':               'resource_name',
+            'PiPersonID':             'PiPersonID',
+            'RemoteSiteLogin':        'pi_username',
+            'ProjectTitle':           'ProjectTitle',
+            'project_name_base':      'mnemonic_code',
+            'local_fos':              'area_of_interest',
+            'GrantNumber':            'GrantNumber',
+            'site_grant_key':         'contract_number',
+            'BoardType':              'opportunity',
+            'site_org':               'ncar_org',
+            'Resource':               'requested_resource',
             'ServiceUnitsAllocated':  'requested_amount',
+            'StartDate':              'StartDate',
+            'EndDate':                'EndDate',
+        },
+        COPY_SRC_OR_ADD_BLANK:{
+            'Abstract':               'Abstract',
         },
         COPY_SRC_IF_SRC_SET: {
             'RecordID':               'RecordID',
-            'Comment':                'Comment',
         },
     },
     ('APacket',                       'adjust_allocation'): {
@@ -320,6 +338,7 @@ MAP = {
             'ProjectID':              'ProjectID',
             'Resource':               'resource_name',
             'ServiceUnitsAllocated':  'requested_amount',
+            'GrantNumber':            'GrantNumber',
         },
         COPY_SRC_IF_SRC_SET: {
             'RecordID':               'RecordID',
@@ -332,6 +351,7 @@ MAP = {
             'Resource':               'resource_name',
             'ServiceUnitsAllocated':  'ServiceUnitsAllocated',
             'EndDate':                'EndDate',
+            'GrantNumber':            'GrantNumber',
         },
         COPY_SRC_IF_SRC_SET: {
             'RecordID':               'RecordID',
@@ -369,6 +389,7 @@ MAP = {
             'contingent_resources':   'AdditionalResources',
             'Email':                  'Email',
             'project_id':             'ProjectID',
+            'GrantNumber':            'GrantNumber',
         },
         COPY_SRC_IF_SRC_SET: {
             'person_id':              'PersonID',
