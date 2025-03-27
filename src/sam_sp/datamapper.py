@@ -312,22 +312,13 @@ MAP = {
     },
     ('APacket',                       'supplement_allocation'): {
         COPY_SRC_OR_ADD_NONE: {
-            'PiPersonID':             'PiPersonID',
-            'RemoteSiteLogin':        'pi_username',
-            'ProjectTitle':           'ProjectTitle',
-            'project_name_base':      'mnemonic_code',
-            'local_fos':              'area_of_interest',
+            'ProjectID':              'ProjectID',
             'GrantNumber':            'GrantNumber',
-            'site_grant_key':         'contract_number',
-            'BoardType':              'opportunity',
-            'site_org':               'ncar_org',
             'Resource':               'requested_resource',
             'ServiceUnitsAllocated':  'requested_amount',
             'StartDate':              'StartDate',
             'EndDate':                'EndDate',
-        },
-        COPY_SRC_OR_ADD_BLANK:{
-            'Abstract':               'Abstract',
+            'Comment':                'Comment',
         },
         COPY_SRC_IF_SRC_SET: {
             'RecordID':               'RecordID',
