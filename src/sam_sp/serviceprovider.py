@@ -56,7 +56,8 @@ class ServiceProvider(ServiceProviderIF):
         )
         self.task_service = TaskService(self.sam_client,self.people_client)
 
-    def get_local_task_name(self, method_name, *args, **kwargs) -> str:
+    def get_local_task_name(self, method_name, kwargs) -> str:
+        self.logdumper.debug("Looking up task name for "+method_name,kwargs)
         if method_name == "choose_or_add_grant":
             return "choose_or_add_contract"
         elif method_name == "choose_or_add_local_fos":
