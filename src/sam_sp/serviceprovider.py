@@ -333,7 +333,7 @@ class ServiceProvider(ServiceProviderIF):
     def update_allocation(self, *args, **kwargs) -> TaskStatus:
         allocationType = kwargs['AllocationType']
         task_name = None
-        # WORK HERE
+
         if allocationType == "renewal":
             task_name = "renew_allocation"
         elif allocationType == "supplement":

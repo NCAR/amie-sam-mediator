@@ -55,7 +55,12 @@ class SAMClient(object):
                                       timeout=self.tmout)
             
         except requests.exceptions.Timeout as te:
-            raise ServiceProviderTemporaryError(te);
+            raise ServiceProviderTemporaryError(te)
+        except HTTPError as http_err:
+            if http_err.response.status_code == 503:
+                raise ServiceProviderTemporaryError(http_err)
+            else:
+                raise http_err
         
         return result
 
@@ -81,6 +86,11 @@ class SAMClient(object):
                                       verify=VERIFY_SSL, timeout=self.tmout)
         except requests.exceptions.Timeout as te:
             raise ServiceProviderTemporaryError(te);
+        except HTTPError as http_err:
+            if http_err.response.status_code == 503:
+                raise ServiceProviderTemporaryError(http_err)
+            else:
+                raise http_err
         
         return result
         
