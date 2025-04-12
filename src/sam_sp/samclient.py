@@ -1,6 +1,7 @@
 import os
 import json
 import requests
+from urllib.error import HTTPError
 from miscfuncs import truthy, to_expanded_string
 from spexception import (ServiceProviderTemporaryError, ServiceProviderError)
 from taskstatus import TaskStatus
