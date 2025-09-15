@@ -248,6 +248,8 @@ class PeopleClient(object):
             return json.loads(result.text)
         elif result.status_code == 404:
             return None
+        elif result.status_code == 500 and "Object not found" in response.text:
+            return None
 
         self._raise_request_error('GET',url,result)
                          

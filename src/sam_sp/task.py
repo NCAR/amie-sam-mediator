@@ -310,7 +310,9 @@ class TaskService(object):
         result = self.people_client.set_nsf_code_for_external_org(org_id,
                                                                   nsf_org_code)
         self.logdumper.debug("PEOPLE result:",result)
-        if 'nsfOrgCode' not in result or nsf_org_code != result['nsfOrgCode']:
+        if result is None or \
+           'nsfOrgCode' not in result or \
+           nsf_org_code != result['nsfOrgCode']:
             raise RuntimeError("Unable to set nsf_org_code in PeopleDB: " + \
                                "result:\n" + to_expanded_string(result))
         return self._change_SAM_task_state_to_syncing(task)
