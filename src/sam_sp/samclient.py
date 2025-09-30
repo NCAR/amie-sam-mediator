@@ -274,7 +274,7 @@ class SAMClient(object):
                 org_choices.append([mc, desc, 'True', str(active)])
             if not mc or not active:
                 mcs = maker.make_suggestions(MNEMONIC_CODES, site_org)
-                mcs.append(maker.make_suggestions(MNEMONIC_CODES, name))
+                mcs.append(maker.make_suggestions(MNEMONIC_CODES, desc))
                 for mc in mcs:
                     org_choices.append([ mc, desc, 'False', 'False'])
         if org_code:
