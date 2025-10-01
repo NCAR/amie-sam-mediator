@@ -284,8 +284,6 @@ class SAMClient(object):
                 mcs = maker.make_suggestions(MNEMONIC_CODES, desc)
                 for mc in mcs:
                     org_choices.append([ mc, desc, 'False', 'False' ])
-        raise RuntimeError("DEBUG org_choices: \n" + \
-                           to_expanded_string(org_choices))
 
         max_choices = maker.max_suggestions
         choices.extend(self._combine_org_and_inst_choices(org_choices,
