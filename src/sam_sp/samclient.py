@@ -270,11 +270,10 @@ class SAMClient(object):
         
         if site_org:
             mc, desc, active = self._get_mnemonic_data_for_org(site_org)
-            if mc:
+            if mc and active:
                 org_choices.append([mc, desc, 'True', str(active)])
             if not mc or not active:
-                mcs = maker.make_suggestions(MNEMONIC_CODES, site_org)
-                mcs.append(maker.make_suggestions(MNEMONIC_CODES, desc))
+                mcs = maker.make_suggestions(MNEMONIC_CODES, desc)
                 for mc in mcs:
                     org_choices.append([ mc, desc, 'False', 'False'])
         if org_code:
@@ -285,6 +284,8 @@ class SAMClient(object):
                 mcs = maker.make_suggestions(MNEMONIC_CODES, desc)
                 for mc in mcs:
                     org_choices.append([ mc, desc, 'False', 'False' ])
+        raise RuntimeError("DEBUG org_choices: \n" + \
+                           to_expanded_string(org_choices))
 
         max_choices = maker.max_suggestions
         choices.extend(self._combine_org_and_inst_choices(org_choices,
