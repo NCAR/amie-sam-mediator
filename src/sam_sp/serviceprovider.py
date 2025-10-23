@@ -182,7 +182,7 @@ class ServiceProvider(ServiceProviderIF):
         grantNumber = kwargs['GrantNumber']
         contracts = self.sam_client.get("contracts/"+grantNumber)
         contract_choices = self._build_contract_choices(contracts)
-        return self._submit_request('choose_or_add_contract_number',
+        return self._submit_request('choose_or_add_contract',
                                     kwargs, contract_choices)
 
     def _build_contract_choices(self, contracts):
