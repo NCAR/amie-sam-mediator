@@ -58,9 +58,7 @@ class ServiceProvider(ServiceProviderIF):
 
     def get_local_task_name(self, method_name, kwargs) -> str:
         self.logdumper.debug("Looking up task name for "+method_name,kwargs)
-        if method_name == "choose_or_add_grant":
-            return "choose_or_add_contract"
-        elif method_name == "choose_or_add_local_fos":
+        if method_name == "choose_or_add_local_fos":
             return "choose_area_of_interest"
         elif method_name == "choose_or_add_project_name_base":
             return "choose_or_add_mnemonic_code"
@@ -170,21 +168,28 @@ class ServiceProvider(ServiceProviderIF):
         return self.task_service.submit_request('activate_person',kwargs)
 
 
-    def lookup_grant(self, *args, **kwargs) -> str:
+    def lookup_project_by_grant_number(self, *args, **kwargs) -> str:
         grantNumber = kwargs['GrantNumber']
-        result = self.sam_client.get("grant/"+grantNumber)
+        result = self.sam_client.get("project/"+grantNumber)
         if not result:
             return None
-        return result['site_grant_key']
+        return result['ProjectID']
+
+    def lookup_contract_number(self, *args, **kwargs) -> str:
+        contractNumber = kwargs['contract_number']
+        result = self.sam_client.get("contract/"+contractNumber)
+        if not result:
+            return None
+        return result['contract_number']
     
-    def choose_or_add_grant(self, *args, **kwargs) -> TaskStatus:
-        ts = self._lookup_task('choose_or_add_contract', kwargs)
+    def choose_or_add_contract_number(self, *args, **kwargs) -> TaskStatus:
+        ts = self._lookup_task('choose_or_add_contract_number', kwargs)
         if ts:
             return ts
         grantNumber = kwargs['GrantNumber']
-        grants = self.sam_client.get("grants/"+grantNumber)
-        grant_choices = self._build_contract_choices(grants)
-        return self._submit_request('choose_or_add_contract',
+        contracts = self.sam_client.get("contracts/"+grantNumber)
+        contract_choices = self._build_contract_choices(grants)
+        return self._submit_request('choose_or_add_contract_number',
                                     kwargs, grant_choices)
 
     def _build_contract_choices(self, grants):
@@ -334,7 +339,9 @@ class ServiceProvider(ServiceProviderIF):
         allocationType = kwargs['AllocationType']
         task_name = None
 
-        if allocationType == "renewal":
+        if allocationType == "new" or allocationType == "transfer":
+            task_name = "create_allocation"
+        elif allocationType == "renewal":
             task_name = "renew_allocation"
         elif allocationType == "supplement":
             task_name = "supplement_allocation"
@@ -342,8 +349,6 @@ class ServiceProvider(ServiceProviderIF):
             task_name = "adjust_allocation"
         elif allocationType == "extension":
             task_name = "extend_allocation"
-#       elif allocationType == "transfer":
-#           task_name = "transfer_allocation"
 #       elif allocationType == "advance":
 #           task_name = "advance_allocation"
         else:

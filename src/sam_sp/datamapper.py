@@ -162,7 +162,7 @@ MAP = {
             'GlobalID':               'GlobalID',
         },
     },
-    ('APacket',                       'choose_or_add_contract'): {
+    ('APacket',                       'choose_or_add_contract_number'): {
         COPY_SRC_OR_ADD_NONE: {
             'GrantNumber':            'GrantNumber',
             'PfosNumber':             'PfosNumber',
@@ -212,13 +212,15 @@ MAP = {
     },
     ('APacket',                       'create_project'): {
         COPY_SRC_OR_ADD_NONE: {
+            'AllocationType':         'AllocationType',
+            'RequestType':            'RequestType',
             'PiPersonID':             'PiPersonID',
             'RemoteSiteLogin':        'pi_username',
             'ProjectTitle':           'ProjectTitle',
             'project_name_base':      'mnemonic_code',
             'local_fos':              'area_of_interest',
             'GrantNumber':            'GrantNumber',
-            'site_grant_key':         'contract_number',
+            'contract_number':        'contract_number',
             'BoardType':              'opportunity',
             'site_org':               'ncar_org',
             'Resource':               'requested_resource',
@@ -289,17 +291,37 @@ MAP = {
             'Comment':                'Comment',
         },
     },
+    ('APacket',                       'create_allocation'): {
+        COPY_SRC_OR_ADD_NONE: {
+            'ProjectID':              'ProjectID',
+            'GrantNumber':            'GrantNumber',
+            'Resource':               'requested_resource',
+            'ServiceUnitsAllocated':  'requested_amount',
+            'StartDate':              'StartDate',
+            'EndDate':                'EndDate',
+        },
+        COPY_SRC_OR_ADD_BLANK: {
+            'PersonID':               'ACCESSUsername',
+            'ServiceUnitsAllocated':  'requested_amount',
+            'StartDate':              'StartDate',
+            'EndDate':                'EndDate',
+        },
+        COPY_SRC_IF_SRC_SET: {
+            'RecordID':               'RecordID',
+            'Comment':                'Comment',
+        },
+    },
     ('APacket',                       'renew_allocation'): {
         COPY_SRC_OR_ADD_NONE: {
             'ProjectID':              'ProjectID',
-            'Resource':               'resource_name',
+            'Resource':               'requested_resource',
             'GrantNumber':            'GrantNumber',
         },
         COPY_SRC_OR_ADD_BLANK: {
             'PersonID':               'ACCESSUsername',
             'ServiceUnitsAllocated':  'requested_amount',
             'BoardType':              'opportunity',
-            'site_grant_key':         'contract_number',
+            'contract_number':        'contract_number',
             'site_org':               'ncar_org',
             'local_fos':              'area_of_interest',
             'StartDate':              'StartDate',
@@ -327,7 +349,7 @@ MAP = {
     ('APacket',                       'adjust_allocation'): {
         COPY_SRC_OR_ADD_NONE: {
             'ProjectID':              'ProjectID',
-            'Resource':               'resource_name',
+            'Resource':               'requested_resource',
             'ServiceUnitsAllocated':  'requested_amount',
             'GrantNumber':            'GrantNumber',
         },
@@ -339,7 +361,7 @@ MAP = {
     ('APacket',                       'extend_allocation'): {
         COPY_SRC_OR_ADD_NONE: {
             'ProjectID':              'ProjectID',
-            'Resource':               'resource_name',
+            'Resource':               'requested_resource',
             'ServiceUnitsAllocated':  'ServiceUnitsAllocated',
             'EndDate':                'EndDate',
             'GrantNumber':            'GrantNumber',
