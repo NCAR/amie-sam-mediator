@@ -176,7 +176,7 @@ class ServiceProvider(ServiceProviderIF):
         return result['ProjectID']
     
     def choose_or_add_contract_number(self, *args, **kwargs) -> TaskStatus:
-        ts = self._lookup_task('choose_or_add_contract_number', kwargs)
+        ts = self._lookup_task('choose_or_add_contract', kwargs)
         if ts:
             return ts
         grantNumber = kwargs['GrantNumber']

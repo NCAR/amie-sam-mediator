@@ -162,7 +162,7 @@ MAP = {
             'GlobalID':               'GlobalID',
         },
     },
-    ('APacket',                       'choose_or_add_contract_number'): {
+    ('APacket',                       'choose_or_add_contract'): {
         COPY_SRC_OR_ADD_NONE: {
             'GrantNumber':            'GrantNumber',
             'PfosNumber':             'PfosNumber',
