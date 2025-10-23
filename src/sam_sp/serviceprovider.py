@@ -174,13 +174,6 @@ class ServiceProvider(ServiceProviderIF):
         if not result:
             return None
         return result['ProjectID']
-
-    def lookup_contract_number(self, *args, **kwargs) -> str:
-        contractNumber = kwargs['contract_number']
-        result = self.sam_client.get("contract/"+contractNumber)
-        if not result:
-            return None
-        return result['contract_number']
     
     def choose_or_add_contract_number(self, *args, **kwargs) -> TaskStatus:
         ts = self._lookup_task('choose_or_add_contract_number', kwargs)
