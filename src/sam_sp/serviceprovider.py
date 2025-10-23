@@ -181,22 +181,22 @@ class ServiceProvider(ServiceProviderIF):
             return ts
         grantNumber = kwargs['GrantNumber']
         contracts = self.sam_client.get("contracts/"+grantNumber)
-        contract_choices = self._build_contract_choices(grants)
+        contract_choices = self._build_contract_choices(contracts)
         return self._submit_request('choose_or_add_contract_number',
-                                    kwargs, grant_choices)
+                                    kwargs, contract_choices)
 
-    def _build_contract_choices(self, grants):
-        gchoices = [['ContractNumber','Title','PI','StartDate','EndDate']]
-        for grant in grants:
-            gchoice = [
-                grant['contractNumber'],
-                grant['title'],
-                grant['PI'],
-                grant['startDate'],
-                grant['endDate']
+    def _build_contract_choices(self, contracts):
+        cchoices = [['ContractNumber','Title','PI','StartDate','EndDate']]
+        for contract in contracts:
+            cchoice = [
+                contract['contractNumber'],
+                contract['title'],
+                contract['PI'],
+                contract['startDate'],
+                contract['endDate']
                 ]
-            gchoices.append(gchoice)
-        return gchoices
+            cchoices.append(cchoice)
+        return cchoices
         
     def lookup_local_fos(self, *args, **kwargs) -> str:
         fosNumber = kwargs['PfosNumber']
